@@ -3,9 +3,23 @@ using MediatR;
 
 namespace Domain.CQRS;
 
+public class BackgroundTagOfflineExecutionNotification(int quantidade) : INotification
+{
+    public int quantidade { get; set; } = quantidade;
+}
+
+public class AjusteDelayTagOfflineNotification(ushort newDelay) : INotification
+{
+    public ushort delay { get; set; } = newDelay;
+}
 public class AjusteDelayNotification(ushort newDelayValue) : INotification
 {
     public ushort delay { get; set; } = newDelayValue;
+}
+
+public class AjusteBatchNotification(ushort newBatch) : INotification
+{
+    public ushort batch { get; set; } = newBatch;
 }
 
 public class FalhaTagArquivoConfiguracaoNotification(string tagName, string mensagem) : INotification

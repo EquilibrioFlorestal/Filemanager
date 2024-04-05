@@ -3,8 +3,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Domain.CQRS;
 
-public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logger)
-    : INotificationHandler<ArquivoConfiguracaoAusenteNotification>, INotificationHandler<AjusteDelayNotification>, INotificationHandler<FalhaTagArquivoConfiguracaoNotification>
+public class BackgroundTaskHandler(ILogger<BackgroundTaskHandler> logger) : INotificationHandler<BackgroundTagOfflineExecutionNotification>, INotificationHandler<AjusteDelayTagOfflineNotification>
+{
+    private readonly ILogger<BackgroundTaskHandler> _logger = logger;
+
+    public Task Handle(BackgroundTagOfflineExecutionNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation($"Background: Executando atividade em segundo plano. [Arquivos baixados: {notification.quantidade}]");
+        return Task.CompletedTask;
+    }
+
+    public Task Handle(AjusteDelayTagOfflineNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogWarning($"Delay: Delay entre tarefas em segundo plano ajustado para {notification.delay} horas.");
+        return Task.CompletedTask;
+    }
+}
+public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logger) : INotificationHandler<ArquivoConfiguracaoAusenteNotification>, INotificationHandler<AjusteDelayNotification>, INotificationHandler<FalhaTagArquivoConfiguracaoNotification>, INotificationHandler<AjusteBatchNotification>
 {
     private readonly ILogger<ArquivoConfiguracaoHandler> _logger = logger;
     
@@ -25,6 +40,12 @@ public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logg
         _logger.LogError($"Configuracao: Falha ao ler tag [{notification.tag.ToString()}] do arquivo de configuracao. Motivo: {notification.mensagem}");
         return Task.CompletedTask;
     }
+
+    public Task Handle(AjusteBatchNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogWarning($"Batch: Batch ajustado para {notification.batch} arquivos.");
+        return Task.CompletedTask;
+    }
 }
 
 public class TalhaoHandler(ILogger<TalhaoHandler> logger) : INotificationHandler<ErroAdicionarTalhaoNotification>
@@ -33,7 +54,7 @@ public class TalhaoHandler(ILogger<TalhaoHandler> logger) : INotificationHandler
     
     public Task Handle(ErroAdicionarTalhaoNotification notification, CancellationToken cancellationToken)
     {
-        _logger.LogWarning($"Talhao: {notification.order.ProgramacaoRetornoGuid} do arquivo {notification.order.NomeArquivo} não adicionado. Motivo: {notification.mensagem}");
+        _logger.LogWarning($"Talhao: {notification.order.ProgramacaoRetornoGuid} do arquivo {notification.order.NomeArquivo} não adicionado.");
         return Task.CompletedTask;
     }
 }
@@ -44,7 +65,7 @@ public class ImagemHandler(ILogger<ImagemHandler> logger) : INotificationHandler
     
     public Task Handle(ErroAdicionarImagemNotification notification, CancellationToken cancellationToken)
     {
-        _logger.LogWarning($"Imagem: {notification.order.NomeImagem} não adicionada. Motivo: {notification.mensagem}");
+        _logger.LogWarning($"Imagem: {notification.order.NomeImagem} não adicionada.");
         return Task.CompletedTask;
     }
 }
@@ -61,7 +82,7 @@ public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandl
 
     public Task Handle(ErroAdicionarArquivoNotification notification, CancellationToken cancellationToken)
     {
-        _logger.LogWarning($"Arquivo: {notification.order.NomeSemExtensao} não adicionado. Motivo: {notification.mensagem}");
+        _logger.LogWarning($"Arquivo: {notification.order.NomeSemExtensao} não adicionado.");
         return Task.CompletedTask;
     }
 

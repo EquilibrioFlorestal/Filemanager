@@ -17,7 +17,7 @@ public class TalhaoService(IMediator mediator, AppDbContext context) : ITalhaoSe
     public Task<bool> VerificarCadastrado(string nomeArquivo, string programacaoRetornoGuid)
     {
         return Task.FromResult(_context.Talhoes
-            .Any(x => x.NomeArquivo == nomeArquivo && x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
+            .Any(x => x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
     }
 
     public async Task<bool> CadastrarTalhao(OrderTalhaoProcessing requisicao)
