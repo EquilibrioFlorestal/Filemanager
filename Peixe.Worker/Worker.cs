@@ -21,20 +21,16 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
     private const string Extensao = ".zip";
     private const string FilenameOrders = "requests.json";
     private ushort _delaySecondsEachRequest = 10;
+    private ushort _maxBatchTask = 20;
+    private ushort _delayHoursEachBackgroundTagOffline = 8;
     
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-
-        lock (LockObj)
-        {
-            IHost server = serviceProvider.GetRequiredService<IHost>();
-            
-        }
-        
         while (!cancellationToken.IsCancellationRequested)
         {
             Task verificarFilaTask = Task.Run(() => VerificarFilaTarefasAsync(cancellationToken), cancellationToken);
-            
+            Task verificaArquivoBaixado = Task.Run(() => VerificaTodosArquivosBaixados(cancellationToken), cancellationToken);
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 lock (LockObj)
@@ -43,7 +39,6 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
                     
                     if (FilaRequisicoes.Count == 0)
                     {
-                         //Console.Clear();
                         AdicionarTarefa(cancellationToken);
                     }
                 }
@@ -51,7 +46,20 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
             }
 
             await verificarFilaTask;
+            await verificaArquivoBaixado;
         }
+    }
+
+    private async Task VerificaTodosArquivosBaixados(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested || !EncerrarPrograma)
+        {
+            List<string> arquivos = OnedriveUtils.GetDownloadedFiles(OnedriveUtils.CaminhoOnedrive, "DICE", ".zip");
+            Parallel.ForEach(arquivos, OnedriveUtils.SetOffline);
+            await _mediator.Publish(new BackgroundTagOfflineExecutionNotification(arquivos.Count), cancellationToken);
+            await Task.Delay(TimeSpan.FromHours(_delayHoursEachBackgroundTagOffline), cancellationToken);
+        }
+        
     }
 
     private void CarregarConfiguracoesJson()
@@ -59,19 +67,35 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
         try
         {
             IConfigurationSection config = _configuration.GetSection("Peixe");
-            ushort loadDelay = config.GetValue<ushort>("delaySeconds");
+            ushort loadDelay = config.GetValue<ushort>("delaySecondsTask");
+            ushort loadBatch = config.GetValue<ushort>("maxBatchTask");
+            ushort loadDelayBackgroundTagOffline = config.GetValue<ushort>("delayHoursBackgroundTagOffline");
 
-            if (loadDelay == _delaySecondsEachRequest) return;
+            if (loadDelayBackgroundTagOffline != _delayHoursEachBackgroundTagOffline)
+            {
+                AnsiConsole.MarkupLine($"[cyan]Delay[/]: tarefa em segundo plano ajustada para {loadDelayBackgroundTagOffline} horas.");
+                _delayHoursEachBackgroundTagOffline = loadDelayBackgroundTagOffline;
+                _mediator.Publish(new AjusteDelayTagOfflineNotification(loadDelayBackgroundTagOffline));
+            }
             
-            AnsiConsole.MarkupLine($"[cyan]Delay[/]: ajustado para {loadDelay} segundos.");
-            _delaySecondsEachRequest = loadDelay;
-            _mediator.Publish(new AjusteDelayNotification(loadDelay));
+            if (loadDelay != _delaySecondsEachRequest)
+            {
+                AnsiConsole.MarkupLine($"[cyan]Delay[/]: ajustado para {loadDelay} segundos.");
+                _delaySecondsEachRequest = loadDelay;
+                _mediator.Publish(new AjusteDelayNotification(loadDelay));
+            }
+
+            if (loadBatch != _maxBatchTask)
+            {
+                AnsiConsole.MarkupLine($"[cyan]Batch[/]: ajustado para {loadBatch} arquivos.");
+                _maxBatchTask = loadBatch;
+                _mediator.Publish(new AjusteBatchNotification(loadBatch));
+            }
         }
         catch (Exception e)
         {
             AnsiConsole.MarkupLine("[red]Configuracao[/]: Falha ao ler Tag [[Peixe.delaySeconds]] do arquivo de configuracoes.");
             _mediator.Publish(new FalhaTagArquivoConfiguracaoNotification("Peixe.delaySeconds", e.Message));
-            return;
         }
     }
     
@@ -128,7 +152,8 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
                 
                 Task tarefas = ProcessarTarefa(requisicao, cancellationToken);
 
-                AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}]");
+                if (requisicao.FilesDownloaded > 0)
+                    AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}]");
                 _mediator.Publish(new TarefaConcluidaNotification(requisicao), cancellationToken);
                 //_mediator.Publish(new TarefaConcluidaVaziaNotification(requisicao), cancellationToken);
 
@@ -138,7 +163,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
     
     async Task ProcessarTarefa(OrderProcessing requisicao, CancellationToken cancellationToken)
     {
-        requisicao.OrderFiles = DirectoryUtils.ProcurarArquivos(requisicao, Extensao, cancellationToken);
+        requisicao.OrderFiles = DirectoryUtils.ProcurarArquivos(requisicao, Extensao, cancellationToken, _maxBatchTask);
         
         cancellationToken.ThrowIfCancellationRequested();
         foreach (OrderFileProcessing requisicaoArquivo in requisicao.OrderFiles)
@@ -147,6 +172,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
         }
 
         requisicao.FinishOrder();
+        await requisicao.DefinirStatusOffline();
     }
 
     async Task ProcessarArquivo(OrderProcessing requisicao, OrderFileProcessing requisicaoArquivo)
@@ -163,6 +189,8 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
         requisicaoArquivo.Move(requisicaoArquivo.CaminhoOrigem, requisicaoArquivo.CaminhoBackup);
         
         bool validadeProcessamento = await requisicaoArquivo.ValidarProcessamento();
+
+        requisicao.FilesDownloaded += 1;
         
         if (!validadeProcessamento)
         {
@@ -207,8 +235,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, ILogger<Wo
                     await service.CadastrarImagem(orderImagem);
             }
         }
-
-        requisicao.FilesDownloaded += 1;
+        
     }
         
 }

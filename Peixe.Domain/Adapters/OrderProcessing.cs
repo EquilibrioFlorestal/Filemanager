@@ -64,6 +64,16 @@ public class OrderProcessing{
         return true;
     }
 
+    public Task DefinirStatusOffline()
+    {
+        if (FilesDownloaded <= 0) return Task.CompletedTask;
+        
+        List<string> arquivos = OrderFiles.Select(x => x.CaminhoBackup).ToList();
+        Parallel.ForEach(arquivos, OnedriveUtils.SetOffline);
+        return Task.CompletedTask;
+
+    }
+    
     public void FinishOrder()
     {
         FimOrder = DateTime.Now;
