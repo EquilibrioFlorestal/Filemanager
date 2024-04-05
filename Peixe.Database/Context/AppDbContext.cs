@@ -11,7 +11,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer();
+        optionsBuilder.UseSqlServer("");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,8 +26,8 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<Imagem>().ToTable("Download_images_log");
         
         modelBuilder.Entity<Imagem>().HasKey(x => x.Id);
-        modelBuilder.Entity<Imagem>().Property(x => x.Id).HasColumnName("_ID").ValueGeneratedOnAdd();
         
+        modelBuilder.Entity<Imagem>().Property(x => x.Id).HasColumnName("_ID").ValueGeneratedOnAdd();
         modelBuilder.Entity<Imagem>().Property(x => x.CaminhoArquivoZip).HasColumnName("caminho_zip");
         modelBuilder.Entity<Imagem>().Property(x => x.CreateAt).HasColumnName("create_at").HasColumnType("datetime");
         modelBuilder.Entity<Imagem>().Property(x => x.ProgramacaoRetornoGuid).HasColumnName("id_programacao_retorno_guid");
@@ -38,7 +38,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     {
         modelBuilder.Entity<Arquivo>().ToTable("Download_files_log");
 
-        modelBuilder.Entity<Arquivo>().HasKey(x => x.Id);
+        modelBuilder.Entity<Arquivo>().HasKey(x => x.NomeArquivo);
         modelBuilder.Entity<Arquivo>().Property(x => x.Id).HasColumnName("_ID").ValueGeneratedOnAdd();
 
         modelBuilder.Entity<Arquivo>().Property(x => x.IdEmpresa).HasColumnName("id_empresa");
@@ -56,7 +56,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     {
         modelBuilder.Entity<Talhao>().ToTable("Download_talhoes_log");
 
-        modelBuilder.Entity<Talhao>().HasKey(x => x.Id);
+        modelBuilder.Entity<Talhao>().HasKey(x => x.ProgramacaoRetornoGuid);
         modelBuilder.Entity<Talhao>().Property(x => x.Id).HasColumnName("_ID").ValueGeneratedOnAdd();
 
         modelBuilder.Entity<Talhao>().Property(x => x.IdArea).HasColumnName("id_area_emp");
