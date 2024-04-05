@@ -39,6 +39,8 @@ public class OrderFileProcessing
     public List<OrderImageProcessing> OrderImagens { get; set; }
     public List<OrderTalhaoProcessing> OrderTalhoes { get; set; }
 
+    private bool ProcessamentoValido { get; set; }
+
     public OrderFileProcessing(string caminhoOrigem, string diretorioDestino, string diretorioBackup, string modulo, uint idEmpresa)
     {
         FileInfo fileInfo = new FileInfo(caminhoOrigem);
@@ -58,28 +60,29 @@ public class OrderFileProcessing
         CaminhoBackup = Path.Combine(diretorioBackup, Nome);
 
         DataProcessamento = DateTime.Now;
+        ProcessamentoValido = false;
 
         OrderImagens = new List<OrderImageProcessing>();
         OrderTalhoes = new List<OrderTalhaoProcessing>();
         
-        SetHashOrigem();
+        DefinirHashOrigem();
     }
 
-    private void SetHashOrigem()
+    private void DefinirHashOrigem()
     {
-        string hashFile = GenerateHashFile(CaminhoOrigem);
+        string hashFile = GerarHashArquivo(CaminhoOrigem);
         HashOrigem = hashFile;
     }
 
-    private void SetHashDestino()
+    private void DefinirHashDestino()
     {
-        string hashFile = GenerateHashFile(CaminhoDestino);
+        string hashFile = GerarHashArquivo(CaminhoDestino);
         HashDestino = hashFile;
     }
 
-    private void SetHashBackup()
+    private void DefinirHashBackup()
     {
-        string hashFile = GenerateHashFile(CaminhoBackup);
+        string hashFile = GerarHashArquivo(CaminhoBackup);
         HashBackup = hashFile;
     }
 
@@ -214,22 +217,26 @@ public class OrderFileProcessing
 
         if (!Path.Exists(CaminhoBackup))
             return Task.FromResult(false);
-
+        
+        ProcessamentoValido = true;
         return Task.FromResult(true);
     }
 
+    public Task DefinirStatusOffline()
+    {
+        if (!ProcessamentoValido) return Task.CompletedTask;
+        
+        OnedriveUtils.SetOffline(CaminhoBackup);
+        
+        return Task.CompletedTask;
+    }
+    
     public void Copy(string caminhoOrigem, string caminhoDestino)
     {
         File.Copy(caminhoOrigem, caminhoDestino, true);
-        SetHashDestino();
+        DefinirHashDestino();
     }
-
-    public async Task CopyAsync(string caminhoOrigem, string caminhoDestino)
-    {        
-        await Task.Run(() => File.Copy(caminhoOrigem, caminhoDestino, true));
-        SetHashDestino();
-    }
-
+    
     public void Move(string caminhoOrigem, string caminhoBackup)
     {
         if (HashOrigem != HashDestino)
@@ -239,22 +246,10 @@ public class OrderFileProcessing
         }
         
         File.Move(caminhoOrigem, caminhoBackup, true);
-        SetHashBackup();
+        DefinirHashBackup();
     }
-
-    public async Task MoveAsync(string caminhoOrigem, string caminhoBackup)
-    {
-        if (HashOrigem != HashDestino)
-        {
-            Console.WriteLine("Falha ao validar cópia do arquivo. O arquivo não será movido.");
-            return;
-        }
-
-        await Task.Run(() => File.Move(caminhoOrigem, caminhoBackup, true));
-        SetHashBackup();
-    }
-
-    private static string GenerateHashFile(string caminhoOrigem)
+    
+    private static string GerarHashArquivo(string caminhoOrigem)
     {
         if (!Path.Exists(caminhoOrigem)) return Guid.NewGuid().ToString();
         
