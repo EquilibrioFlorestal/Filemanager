@@ -3,6 +3,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Domain.CQRS;
 
+public class RequiredProcessHandler(ILogger<RequiredProcessHandler> logger) : INotificationHandler<RequiredProcessNotFoundNotification>
+{
+    private readonly ILogger<RequiredProcessHandler> _logger = logger;
+
+
+    public Task Handle(RequiredProcessNotFoundNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogCritical($"Process: Processo requerido de nome {notification.nomeProcesso} não encontrado.");
+        return Task.CompletedTask;
+    }
+}
 public class BackgroundTaskHandler(ILogger<BackgroundTaskHandler> logger) : INotificationHandler<BackgroundTagOfflineExecutionNotification>, INotificationHandler<AjusteDelayTagOfflineNotification>
 {
     private readonly ILogger<BackgroundTaskHandler> _logger = logger;

@@ -3,6 +3,10 @@ using MediatR;
 
 namespace Domain.CQRS;
 
+public class RequiredProcessNotFoundNotification(string processName) : INotification
+{
+    public string nomeProcesso { get; set; } = processName;
+}
 public class BackgroundTagOfflineExecutionNotification(int quantidade) : INotification
 {
     public int quantidade { get; set; } = quantidade;
