@@ -1,16 +1,13 @@
 ﻿using Domain.Adapters;
-using Domain.CQRS;
 using Domain.Interfaces;
 using Domain.Models;
-using MediatR;
 using Peixe.Database.Context;
 
 namespace Peixe.Database.Services;
 
-public class ImagemService(IMediator mediator, AppDbContext context) : IImagemService
+public class ImagemService(AppDbContext context) : IImagemService
 {
     private readonly AppDbContext _context = context;
-    private readonly IMediator _mediator = mediator;
     
     public Task<bool> VerificarCadastrado(string nomeImagem, string programacaoRetornoGuid)
     {
@@ -18,7 +15,7 @@ public class ImagemService(IMediator mediator, AppDbContext context) : IImagemSe
             .Any(x => x.NomeImagem == nomeImagem && x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
     }
 
-    public async Task<bool> CadastrarImagem(OrderImageProcessing requisicao)
+    public async Task<Tuple<bool, string>> CadastrarImagem(OrderImageProcessing requisicao)
     {
         try
         {
@@ -31,12 +28,11 @@ public class ImagemService(IMediator mediator, AppDbContext context) : IImagemSe
             });
 
             await _context.SaveChangesAsync();
-            return true;
+            return Tuple.Create(true, string.Empty);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            await _mediator.Publish(new ErroAdicionarImagemNotification(requisicao, e.Message));
-            return false;
+            return Tuple.Create(false, ex.Message);
         }
     }
 }

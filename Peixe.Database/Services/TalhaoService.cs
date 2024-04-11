@@ -9,53 +9,49 @@ using Serilog;
 
 namespace Peixe.Database.Services;
 
-public class TalhaoService(IMediator mediator, AppDbContext context) : ITalhaoService
+public class TalhaoService(AppDbContext context) : ITalhaoService
 {
     private readonly AppDbContext _context = context;
-    private readonly IMediator _mediator = mediator;
 
     public Task<bool> VerificarCadastrado(string nomeArquivo, string programacaoRetornoGuid)
     {
-        return Task.FromResult(_context.Talhoes
-            .Any(x => x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
+        return Task.FromResult(_context.Talhoes.Any(x => x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
     }
 
-    public async Task<bool> CadastrarTalhao(OrderTalhaoProcessing requisicao)
+    public async Task<Tuple<bool, string>> CadastrarTalhao(OrderTalhaoProcessing requisicao)
     {
+        _context.Talhoes.Add(new Talhao
+        {
+            IdEmpresa = Convert.ToInt32(requisicao.IdEmpresa),
+            Modulo = requisicao.Modulo,
+            NomeArquivo = requisicao.NomeArquivo,
+            ProgramacaoRetornoGuid = requisicao.ProgramacaoRetornoGuid,
+            CreateAt = DateTime.Now,
+            Latitude = requisicao.Latitude,
+            Longitude = requisicao.Longitude,
+            Motivo = requisicao.Motivo,
+            Observacao = requisicao.Observacao,
+            DataSituacao = requisicao.DataSituacao,
+            IdArea = Convert.ToInt32(requisicao.IdArea),
+            IdBloco = Convert.ToInt32(requisicao.IdBloco),
+            IdCiclo = requisicao.IdCiclo,
+            IdEquipe = Convert.ToInt32(requisicao.IdEquipe),
+            IdExportacao = Convert.ToInt32(requisicao.IdExportacao),
+            IdMotivo = Convert.ToInt32(requisicao.IdMotivo),
+            IdSituacao = Convert.ToInt32(requisicao.IdSituacao),
+            IdUsuario = Convert.ToInt32(requisicao.IdSituacao),
+            ImeiColetor = requisicao.ImeiColetor,
+            ProgramacaoGuid = requisicao.ProgramacaoGuid,
+            SnNovo = requisicao.SnNovo ?? 'N',
+        });
         try
         {
-            _context.Talhoes.Add(new Talhao
-            {
-                IdEmpresa = Convert.ToInt32(requisicao.IdEmpresa),
-                Modulo = requisicao.Modulo,
-                NomeArquivo = requisicao.NomeArquivo,
-                ProgramacaoRetornoGuid = requisicao.ProgramacaoRetornoGuid,
-                CreateAt = DateTime.Now,
-                Latitude = requisicao.Latitude,
-                Longitude = requisicao.Longitude,
-                Motivo = requisicao.Motivo,
-                Observacao = requisicao.Observacao,
-                DataSituacao = requisicao.DataSituacao,
-                IdArea = Convert.ToInt32(requisicao.IdArea),
-                IdBloco = Convert.ToInt32(requisicao.IdBloco),
-                IdCiclo = requisicao.IdCiclo,
-                IdEquipe = Convert.ToInt32(requisicao.IdEquipe),
-                IdExportacao = Convert.ToInt32(requisicao.IdExportacao),
-                IdMotivo = Convert.ToInt32(requisicao.IdMotivo),
-                IdSituacao = Convert.ToInt32(requisicao.IdSituacao),
-                IdUsuario = Convert.ToInt32(requisicao.IdSituacao),
-                ImeiColetor = requisicao.ImeiColetor,
-                ProgramacaoGuid = requisicao.ProgramacaoGuid,
-                SnNovo = requisicao.SnNovo ?? 'N',
-            });
-
             await _context.SaveChangesAsync();
-            return true;
+            return await Task.FromResult(Tuple.Create(true, string.Empty));
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            await _mediator.Publish(new ErroAdicionarTalhaoNotification(requisicao, e.Message));
-            return false;
+            return await Task.FromResult(Tuple.Create(false, ex.Message));
         }
     }
 }
