@@ -1,4 +1,6 @@
-﻿namespace Domain.Utils;
+﻿using System.Diagnostics;
+
+namespace Domain.Utils;
 
 internal static class FileAttributesOnedrive
 {
@@ -11,6 +13,12 @@ public static class OnedriveUtils
 {
     public static readonly string CaminhoOnedrive = Environment.GetEnvironmentVariable("OneDrive", EnvironmentVariableTarget.User) ?? string.Empty;
 
+    public static bool CheckProcessOnedrive()
+    {
+        Process[] pname = Process.GetProcessesByName("OneDrive");
+        return (pname.Length != 0);
+    }
+    
     public static List<string> GetDownloadedFiles(string caminho, string modulo, string extensao)
     {
         extensao = extensao.Replace(".", string.Empty);
@@ -27,6 +35,7 @@ public static class OnedriveUtils
 
     public static void SetOffline(string arquivo)
     {
+        if (!File.Exists(arquivo)) return;
         FileAttributes currentAttributes = File.GetAttributes(arquivo);
         currentAttributes &= ~FileAttributesOnedrive.Online;
         currentAttributes |= FileAttributesOnedrive.Offline;
@@ -35,6 +44,7 @@ public static class OnedriveUtils
 
     public static void SetOnline(string arquivo)
     {
+        if (!File.Exists(arquivo)) return;
         FileAttributes currentAttributes = File.GetAttributes(arquivo);
         currentAttributes &= ~FileAttributesOnedrive.Offline;
         currentAttributes |= FileAttributesOnedrive.Online;
