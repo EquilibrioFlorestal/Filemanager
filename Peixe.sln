@@ -3,11 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.Domain", "Peixe.Domain\Peixe.Domain.csproj", "{4E28D34D-7D97-4A3B-A35E-538BCA09FD85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Peixe.Domain", "Peixe.Domain\Peixe.Domain.csproj", "{4E28D34D-7D97-4A3B-A35E-538BCA09FD85}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.Worker", "Peixe.Worker\Peixe.Worker.csproj", "{37B3D225-4504-4B15-BC7D-5E69C86130C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Peixe.DICE.Worker", "Peixe.DICE.Worker\Peixe.DICE.Worker.csproj", "{37B3D225-4504-4B15-BC7D-5E69C86130C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.Database", "Peixe.Database\Peixe.Database.csproj", "{25FCD7BC-A94D-443F-BCAA-12FE1BC343D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Peixe.Database", "Peixe.Database\Peixe.Database.csproj", "{25FCD7BC-A94D-443F-BCAA-12FE1BC343D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SMQ", "SMQ", "{7E8143FC-DF96-4FFB-B9A8-2DB819A5B504}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DICE", "DICE", "{7B96AD5F-0D97-43DC-967D-46836C105ABF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.SMQ.Worker", "Peixe.SMQ.Worker\Peixe.SMQ.Worker.csproj", "{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +33,19 @@ Global
 		{25FCD7BC-A94D-443F-BCAA-12FE1BC343D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25FCD7BC-A94D-443F-BCAA-12FE1BC343D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25FCD7BC-A94D-443F-BCAA-12FE1BC343D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{37B3D225-4504-4B15-BC7D-5E69C86130C8} = {7B96AD5F-0D97-43DC-967D-46836C105ABF}
+		{5F093CD2-C89A-4DD9-AFE6-A5C32FF2219D} = {7E8143FC-DF96-4FFB-B9A8-2DB819A5B504}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9E00F556-F326-4EDF-A932-5D4DE3D226E0}
 	EndGlobalSection
 EndGlobal
