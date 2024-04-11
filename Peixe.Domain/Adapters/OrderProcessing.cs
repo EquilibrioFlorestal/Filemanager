@@ -2,19 +2,21 @@
 
 namespace Domain.Adapters;
 
-public class OrderProcessing{
-    
+public class OrderProcessing
+{   
     public string Guid {get; set; }
     public ushort IdEmpresa { get; set; }
     public string PastaDestino { get; set; }
     public string PastaBackup { get; set; }
     public List<string> PastaOrigem { get; set; }
+    public string? PastaCorrompido { get; set; }
     public string Modulo { get; set; }
     public string NomeUsuario { get; set; }
     public string NomeMaquina { get; set; }
     
     private DateTime InicioOrder { get; set; }
     private DateTime FimOrder { get; set; }
+    
     public double ElapsedTime { get; set; }
     public ushort FilesDownloaded { get; set; }
     
@@ -28,11 +30,9 @@ public class OrderProcessing{
         FilesDownloaded = 0;
         
         PastaOrigem = new List<string>();
-        foreach (string pasta in pastaOrigem)
-        {
-            PastaOrigem.Add(Path.Combine(OnedriveUtils.CaminhoOnedrive, pasta));
-        }
-        
+        OrderFiles = new List<OrderFileProcessing>();
+        foreach (string pasta in pastaOrigem) PastaOrigem.Add(Path.Combine(OnedriveUtils.CaminhoOnedrive, pasta));
+                
         Modulo = modulo;
 
         Guid = System.Guid.NewGuid().ToString() + "-" + IdEmpresa.ToString("00") + "-" + modulo;
@@ -40,7 +40,6 @@ public class OrderProcessing{
         NomeMaquina = Environment.MachineName;
         
         InicioOrder = DateTime.Now;
-
     }
 
     public bool Validate()
@@ -71,7 +70,6 @@ public class OrderProcessing{
         List<string> arquivos = OrderFiles.Select(x => x.CaminhoBackup).ToList();
         Parallel.ForEach(arquivos, OnedriveUtils.SetOffline);
         return Task.CompletedTask;
-
     }
     
     public void FinishOrder()
