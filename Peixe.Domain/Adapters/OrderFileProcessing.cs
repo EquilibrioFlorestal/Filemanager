@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,11 +12,11 @@ namespace Domain.Adapters;
 
 public class OrderFileProcessing
 {
-    public Guid Guid { get; set; }
+    public Guid Guid { get; init; }
     public string Nome { get; set; }
     public string NomeSemExtensao { get; set; }
     public string Extensao { get; set; }
-    public long TamanhoBytes { get; set; }
+    public long TamanhoBytes { get; init; }
 
     protected uint IdEmpresa { get; set; }
     protected string Modulo { get; set; }
@@ -39,7 +40,7 @@ public class OrderFileProcessing
     protected bool ArquivoZipValido { get; set; }
     protected bool ProcessamentoValido { get; set; }
 
-    public DateTime DataProcessamento { get; set; }
+    public DateTime DataProcessamento { get; init; }
 
     public List<OrderImageProcessing> OrderImagens { get; set; }
     public List<OrderTalhaoProcessing> OrderTalhoes { get; set; }
@@ -251,7 +252,7 @@ public class OrderFileProcessing
         DefinirHashDestino();
     }
     
-    public void Move(string caminhoOrigem, string caminhoBackup)
+    public void Move(string caminhoOrigem, string caminhoBackup, bool fake = false)
     {
         if (HashOrigem != HashDestino)
         {
@@ -264,7 +265,11 @@ public class OrderFileProcessing
         if (!Directory.Exists(diretorioBackup) && diretorioBackup != null)
             Directory.CreateDirectory(path: diretorioBackup);
 
-        File.Move(caminhoOrigem, caminhoBackup, true);
+        if (fake == false)
+            File.Move(caminhoOrigem, caminhoBackup, true);
+        else
+            File.Copy(caminhoOrigem, caminhoBackup, true);
+
         DefinirHashBackup();
     }
     
