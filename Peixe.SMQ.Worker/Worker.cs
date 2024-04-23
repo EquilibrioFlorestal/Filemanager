@@ -11,8 +11,8 @@ namespace Peixe.SMQ.Worker
     public class Worker(IConfiguration configuration, IServiceProvider serviceProvider, IHostApplicationLifetime host) : BackgroundService
     {
         private readonly IConfiguration _configuration = configuration;
-        private static readonly Queue<OrderProcessing?> FilaRequisicoes = new Queue<OrderProcessing?>();
-        private static readonly List<string> PastasCriadasSessao = new List<string>();
+        private static readonly Queue<OrderProcessingSmq?> FilaRequisicoes = new();
+        private static readonly List<string> PastasCriadasSessao = new();
         private static readonly object LockObj = new object();
         private const string Extensao = ".zip";
         private const string FilenameOrders = "requests.json";
@@ -41,7 +41,7 @@ namespace Peixe.SMQ.Worker
                 AdicionarTarefa(cancellationToken);
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+            await verificarFilaTask;
 
         }
 
@@ -82,7 +82,7 @@ namespace Peixe.SMQ.Worker
         {
             lock (LockObj)
             {
-                List<OrderProcessing>? orders = LerRequisicoesJson();
+                List<OrderProcessingSmq>? orders = LerRequisicoesJson();
 
                 orders?.ForEach(tarefa =>
                 {
@@ -99,7 +99,7 @@ namespace Peixe.SMQ.Worker
             }
         }
 
-        List<OrderProcessing>? LerRequisicoesJson()
+        List<OrderProcessingSmq>? LerRequisicoesJson()
         {
             string caminhoArquivoOrders = Path.Combine(Directory.GetCurrentDirectory(), FilenameOrders);
             if (!Path.Exists(caminhoArquivoOrders))
@@ -109,7 +109,7 @@ namespace Peixe.SMQ.Worker
             }
 
             string contentYaml = File.ReadAllText(caminhoArquivoOrders);
-            List<OrderProcessing>? orders = JsonConvert.DeserializeObject<List<OrderProcessing>>(contentYaml);
+            List<OrderProcessingSmq>? orders = JsonConvert.DeserializeObject<List<OrderProcessingSmq>>(contentYaml);
             return orders;
         }
 
@@ -119,9 +119,13 @@ namespace Peixe.SMQ.Worker
             {
                 lock (LockObj)
                 {
-                    if (FilaRequisicoes.Count <= 0) return;
+                    if (FilaRequisicoes.Count <= 0)
+                    {
+                        host.StopApplication();
+                        return;
+                    }
 
-                    OrderProcessing? requisicao = FilaRequisicoes.Dequeue();
+                    OrderProcessingSmq? requisicao = FilaRequisicoes.Dequeue();
 
                     if (requisicao == null) continue;
 
@@ -141,16 +145,13 @@ namespace Peixe.SMQ.Worker
                         .AddItem("Sucesso", quantidadeSucesso, Color.Green)
                         .AddItem("Falha", requisicao.OrderFiles.Count - quantidadeSucesso, Color.Red)
                         );
-
-
-                    host.StopApplication();
                 }
             }
         }
 
         async Task ProcessarTarefa(OrderProcessing requisicao, CancellationToken cancellationToken)
         {
-            requisicao.OrderFiles.AddRange(ProcurarArquivos(requisicao, Extensao, cancellationToken, _maxBatchTask));
+            requisicao.ProcurarArquivos(Extensao, cancellationToken, _maxBatchTask);
 
             if (cancellationToken.IsCancellationRequested) return;
 
@@ -258,21 +259,6 @@ namespace Peixe.SMQ.Worker
                 }
             }
 
-        }
-
-        private List<OrderFileProcessingSmq> ProcurarArquivos(OrderProcessing requisicao, string extensao, CancellationToken cancellationToken, ushort? maxBatch = 20)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            extensao = extensao.Replace(".", string.Empty);
-
-            List<string> localArquivos = requisicao.PastaOrigem.SelectMany(pasta =>
-                Directory.GetFiles(pasta, $"{requisicao.Modulo}_*.{extensao}", SearchOption.AllDirectories).OrderBy(f => new FileInfo(f).Length)).Take(_maxBatchTask).ToList();
-
-            List<OrderFileProcessingSmq> listaArquivos = [];
-            listaArquivos.AddRange(localArquivos.Select(arquivo => new OrderFileProcessingSmq(arquivo, requisicao.PastaDestino, requisicao.PastaBackup, requisicao.PastaCorrompido, requisicao.Modulo, requisicao.IdEmpresa)));
-
-            return listaArquivos;
         }
 
     }
