@@ -14,6 +14,7 @@ public class RequiredProcessHandler(ILogger<RequiredProcessHandler> logger) : IN
         return Task.CompletedTask;
     }
 }
+
 public class BackgroundTaskHandler(ILogger<BackgroundTaskHandler> logger) : INotificationHandler<BackgroundTagOfflineExecutionNotification>, INotificationHandler<AjusteDelayTagOfflineNotification>
 {
     private readonly ILogger<BackgroundTaskHandler> _logger = logger;
@@ -30,6 +31,7 @@ public class BackgroundTaskHandler(ILogger<BackgroundTaskHandler> logger) : INot
         return Task.CompletedTask;
     }
 }
+
 public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logger) : INotificationHandler<ArquivoConfiguracaoAusenteNotification>, INotificationHandler<AjusteDelayNotification>, INotificationHandler<FalhaTagArquivoConfiguracaoNotification>, INotificationHandler<AjusteBatchNotification>
 {
     private readonly ILogger<ArquivoConfiguracaoHandler> _logger = logger;
