@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Peixe.SMQ.Worker-1ecb858c-9778-42af-83ac-f34c8cd88936</UserSecretsId>
+    <AssemblyName>SMQ.FileManager</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
