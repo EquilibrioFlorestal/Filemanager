@@ -39,7 +39,7 @@ public class TalhaoService(AppDbContext context) : ITalhaoService
             IdExportacao = Convert.ToInt32(requisicao.IdExportacao),
             IdMotivo = Convert.ToInt32(requisicao.IdMotivo),
             IdSituacao = Convert.ToInt32(requisicao.IdSituacao),
-            IdUsuario = Convert.ToInt32(requisicao.IdSituacao),
+            IdUsuario = Convert.ToInt32(requisicao.IdUsuario),
             ImeiColetor = requisicao.ImeiColetor,
             ProgramacaoGuid = requisicao.ProgramacaoGuid,
             SnNovo = requisicao.SnNovo ?? 'N',

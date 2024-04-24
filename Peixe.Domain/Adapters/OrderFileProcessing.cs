@@ -167,7 +167,7 @@ public class OrderFileProcessing
 
     protected OrderTalhaoProcessing ProcessarTalhao(XmlNode talhao)
     {
-        return new OrderTalhaoProcessing
+        var order = new OrderTalhaoProcessing
         {
             DataSituacao = DateTime.ParseExact(talhao.SelectSingleNode("dt_situacao")?.InnerText ?? string.Empty,
                 "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
@@ -197,6 +197,7 @@ public class OrderFileProcessing
             SnNovo = talhao.SelectSingleNode("sn_novo")?.InnerText.ToCharArray().FirstOrDefault(),
 
         };
+        return order;
     }
 
     protected OrderImageProcessing ProcessarImagem(XmlNode imagem)

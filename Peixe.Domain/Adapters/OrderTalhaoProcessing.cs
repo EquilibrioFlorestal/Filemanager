@@ -10,7 +10,7 @@ public class OrderTalhaoProcessing
     public DateTime DataSituacao { get; set; } // dt_situacao
     public uint IdMotivo { get; set; } // id_motivo
     public string? Motivo { get; set; } // ds_motivo_obs
-    public uint IdUsuario { get; set; } // id_usuario_situacao
+    public uint IdUsuario { get; init; } // id_usuario_situacao
     public uint IdEquipe { get; set; } // id_equipe_situacao
     public required string ImeiColetor { get; set; } // cd_imei_situacao
     public string? Observacao { get; set; } // ds_obs
