@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Peixe.Database.Context;
 
-public class AppDbContext(DbContextOptions options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Arquivo> Arquivos { get; set; }
     public DbSet<Imagem> Imagens { get; set; }
@@ -11,7 +11,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("");
+        optionsBuilder.UseSqlServer(
+            connectionString: "",
+            options => options.CommandTimeout(180).EnableRetryOnFailure(5));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,9 +26,9 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     private void OnModelCreatingImagem(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Imagem>().ToTable("Download_images_log");
-        
+
         modelBuilder.Entity<Imagem>().HasKey(x => x.Id);
-        
+
         modelBuilder.Entity<Imagem>().Property(x => x.Id).HasColumnName("_ID").ValueGeneratedOnAdd();
         modelBuilder.Entity<Imagem>().Property(x => x.CaminhoArquivoZip).HasColumnName("caminho_zip");
         modelBuilder.Entity<Imagem>().Property(x => x.CreateAt).HasColumnName("create_at").HasColumnType("datetime");
