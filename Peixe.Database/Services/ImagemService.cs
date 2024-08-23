@@ -1,25 +1,37 @@
 ﻿using Domain.Adapters;
 using Domain.Interfaces;
 using Domain.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Peixe.Database.Context;
 
 namespace Peixe.Database.Services;
 
-public class ImagemService(AppDbContext context) : IImagemService
+public class ImagemService : IImagemService
 {
-    private readonly AppDbContext _context = context;
-    
-    public Task<bool> VerificarCadastrado(string nomeImagem, string programacaoRetornoGuid)
+    private readonly IServiceProvider _serviceProvider;
+
+    public ImagemService(IServiceProvider serviceProvider)
     {
-        return Task.FromResult(_context.Imagens
+        _serviceProvider = serviceProvider;
+    }
+
+    public Task<Boolean> VerificarCadastrado(String nomeImagem, String programacaoRetornoGuid)
+    {
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        return Task.FromResult(context.Imagens
             .Any(x => x.NomeImagem == nomeImagem && x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
     }
 
-    public async Task<Tuple<bool, string>> CadastrarImagem(OrderImageProcessing requisicao)
+    public async Task<Tuple<Boolean, String>> CadastrarImagem(OrderImageProcessing requisicao)
     {
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         try
         {
-            _context.Imagens.Add(new Imagem
+            context.Imagens.Add(new Imagem
             {
                 NomeImagem = requisicao.NomeImagem,
                 CaminhoArquivoZip = requisicao.CaminhoArquivoZip,
@@ -27,8 +39,8 @@ public class ImagemService(AppDbContext context) : IImagemService
                 CreateAt = DateTime.Now
             });
 
-            await _context.SaveChangesAsync();
-            return Tuple.Create(true, string.Empty);
+            await context.SaveChangesAsync();
+            return Tuple.Create(true, String.Empty);
         }
         catch (Exception ex)
         {

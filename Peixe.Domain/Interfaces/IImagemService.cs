@@ -4,6 +4,6 @@ namespace Domain.Interfaces;
 
 public interface IImagemService
 {
-    Task<bool> VerificarCadastrado(string nomeImagem, string programacaoRetornoGuid);
-    Task<Tuple<bool, string>> CadastrarImagem(OrderImageProcessing requisicao);
+    Task<Boolean> VerificarCadastrado(String nomeImagem, String programacaoRetornoGuid);
+    Task<Tuple<Boolean, String>> CadastrarImagem(OrderImageProcessing requisicao);
 }

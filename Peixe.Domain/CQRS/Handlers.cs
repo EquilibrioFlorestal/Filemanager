@@ -35,7 +35,7 @@ public class BackgroundTaskHandler(ILogger<BackgroundTaskHandler> logger) : INot
 public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logger) : INotificationHandler<ArquivoConfiguracaoAusenteNotification>, INotificationHandler<AjusteDelayNotification>, INotificationHandler<FalhaTagArquivoConfiguracaoNotification>, INotificationHandler<AjusteBatchNotification>
 {
     private readonly ILogger<ArquivoConfiguracaoHandler> _logger = logger;
-    
+
     public Task Handle(ArquivoConfiguracaoAusenteNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogCritical($"Configuracao: Arquivo de configuracao {notification.filename} ausente.");
@@ -61,13 +61,19 @@ public class ArquivoConfiguracaoHandler(ILogger<ArquivoConfiguracaoHandler> logg
     }
 }
 
-public class TalhaoHandler(ILogger<TalhaoHandler> logger) : INotificationHandler<ErroAdicionarTalhaoNotification>
+public class TalhaoHandler(ILogger<TalhaoHandler> logger) : INotificationHandler<ErroAdicionarTalhaoNotification>, INotificationHandler<ErroAtualizarTalhaoNaProgramacaoNotification>
 {
     private readonly ILogger<TalhaoHandler> _logger = logger;
-    
+
     public Task Handle(ErroAdicionarTalhaoNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogWarning($"Talhao: {notification.order.ProgramacaoRetornoGuid} do arquivo {notification.order.NomeArquivo} não adicionado.");
+        return Task.CompletedTask;
+    }
+
+    public Task Handle(ErroAtualizarTalhaoNaProgramacaoNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogWarning($"Programação: {notification.order.ProgramacaoGuid} não foi possível atualizar na tabela Programação.");
         return Task.CompletedTask;
     }
 }
@@ -75,7 +81,7 @@ public class TalhaoHandler(ILogger<TalhaoHandler> logger) : INotificationHandler
 public class ImagemHandler(ILogger<ImagemHandler> logger) : INotificationHandler<ErroAdicionarImagemNotification>
 {
     private readonly ILogger<ImagemHandler> _logger = logger;
-    
+
     public Task Handle(ErroAdicionarImagemNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogWarning($"Imagem: {notification.order.NomeImagem} não adicionada.");
@@ -86,7 +92,7 @@ public class ImagemHandler(ILogger<ImagemHandler> logger) : INotificationHandler
 public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandler<ArquivoCorrompidoNotification>, INotificationHandler<ErroAdicionarArquivoNotification>, INotificationHandler<ArquivoProcessandoNotification>, INotificationHandler<TransferenciaInvalidaNotification>
 {
     private readonly ILogger<ArquivoHandler> _logger = logger;
-    
+
     public Task Handle(ArquivoCorrompidoNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogWarning($"Arquivo: {notification.order.NomeSemExtensao} esta corrompido.");
@@ -115,7 +121,7 @@ public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandl
 public class TarefaHandler(ILogger<TarefaHandler> logger) : INotificationHandler<TarefaInvalidaNotification>, INotificationHandler<TarefaConcluidaNotification>, INotificationHandler<TarefaIniciadaNotification>, INotificationHandler<TarefaConcluidaVaziaNotification>
 {
     private readonly ILogger<TarefaHandler> _logger = logger;
-    
+
     public Task Handle(TarefaInvalidaNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogCritical($"Tarefa: {notification.order.Guid} nao e valida.");

@@ -3,14 +3,14 @@
 public class OrderImageProcessing
 {
     public Guid Guid { get; set; }
-    public string ProgramacaoRetornoGuid { get; set; }
-    public string NomeImagem { get; set; }
-    public string CaminhoArquivoZip { get; set; }
-    
-    public OrderImageProcessing(string programacaoRetornoGuid, string nomeImagem, string caminhoArquivoZip)
+    public String ProgramacaoRetornoGuid { get; set; }
+    public String NomeImagem { get; set; }
+    public String CaminhoArquivoZip { get; set; }
+
+    public OrderImageProcessing(String programacaoRetornoGuid, String nomeImagem, String caminhoArquivoZip)
     {
         Guid = Guid.NewGuid();
-        
+
         ProgramacaoRetornoGuid = programacaoRetornoGuid;
         NomeImagem = Path.GetFileName(nomeImagem);
         CaminhoArquivoZip = caminhoArquivoZip;

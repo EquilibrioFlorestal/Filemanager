@@ -1,11 +1,10 @@
-﻿using System.Globalization;
-using System.Linq;
+﻿using Domain.Utils;
+using ICSharpCode.SharpZipLib.Zip;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Domain.Utils;
-using ICSharpCode.SharpZipLib.Zip;
 using ZipFile = ICSharpCode.SharpZipLib.Zip.ZipFile;
 
 namespace Domain.Adapters;
@@ -13,32 +12,32 @@ namespace Domain.Adapters;
 public class OrderFileProcessing
 {
     public Guid Guid { get; init; }
-    public string Nome { get; set; }
-    public string NomeSemExtensao { get; set; }
-    public string Extensao { get; set; }
-    public long TamanhoBytes { get; init; }
+    public String Nome { get; set; }
+    public String NomeSemExtensao { get; set; }
+    public String Extensao { get; set; }
+    public Int64 TamanhoBytes { get; init; }
 
-    protected uint IdEmpresa { get; set; }
-    protected string Modulo { get; set; }
-    protected uint IdExportacao { get; set; }
-    public uint IdCiclo { get; set; }
-    
-    public ushort QuantidadeImagens { get; set; }
-    public ushort QuantidadeTalhoes { get; set; }
-    
-    public string CaminhoOrigem { get; set; }
-    public string CaminhoDestino { get; set; }
-    public string CaminhoBackup { get; set; }
+    protected UInt32 IdEmpresa { get; set; }
+    protected String Modulo { get; set; }
+    protected UInt32 IdExportacao { get; set; }
+    public UInt32 IdCiclo { get; set; }
 
-    public string DiretorioDestino { get; set; }
-    public string DiretorioBackup { get; set; }
+    public UInt16 QuantidadeImagens { get; set; }
+    public UInt16 QuantidadeTalhoes { get; set; }
 
-    protected string? HashOrigem { get; set; }
-    protected string? HashDestino { get; set; }
-    protected string? HashBackup { get; set; }
+    public String CaminhoOrigem { get; set; }
+    public String CaminhoDestino { get; set; }
+    public String CaminhoBackup { get; set; }
 
-    protected bool ArquivoZipValido { get; set; }
-    protected bool ProcessamentoValido { get; set; }
+    public String DiretorioDestino { get; set; }
+    public String DiretorioBackup { get; set; }
+
+    protected String? HashOrigem { get; set; }
+    protected String? HashDestino { get; set; }
+    protected String? HashBackup { get; set; }
+
+    protected Boolean ArquivoZipValido { get; set; }
+    protected Boolean ProcessamentoValido { get; set; }
 
     public DateTime DataProcessamento { get; init; }
 
@@ -46,7 +45,7 @@ public class OrderFileProcessing
     public List<OrderTalhaoProcessing> OrderTalhoes { get; set; }
 
 
-    public OrderFileProcessing(string caminhoOrigem, string diretorioDestino, string diretorioBackup, string modulo, uint idEmpresa)
+    public OrderFileProcessing(String caminhoOrigem, String diretorioDestino, String diretorioBackup, String modulo, UInt32 idEmpresa)
     {
         FileInfo fileInfo = new FileInfo(caminhoOrigem);
 
@@ -57,10 +56,10 @@ public class OrderFileProcessing
         TamanhoBytes = fileInfo.Length;
         Modulo = modulo;
         IdEmpresa = idEmpresa;
-        
+
         Regex regexIdCiclo = new Regex(@$"{Modulo}_(\d+)_.*");
         IdCiclo = Convert.ToUInt16(regexIdCiclo.Match(Nome).Groups[1].Value);
-        
+
         CaminhoOrigem = caminhoOrigem;
 
         CaminhoDestino = Path.Combine(diretorioDestino, Nome);
@@ -74,32 +73,32 @@ public class OrderFileProcessing
 
         OrderImagens = new List<OrderImageProcessing>();
         OrderTalhoes = new List<OrderTalhaoProcessing>();
-        
+
         DefinirHashOrigem();
     }
 
     protected void DefinirHashOrigem()
     {
-        string hashFile = GerarHashArquivo(CaminhoOrigem);
+        String hashFile = GerarHashArquivo(CaminhoOrigem);
         HashOrigem = hashFile;
     }
 
     protected void DefinirHashDestino()
     {
-        string hashFile = GerarHashArquivo(CaminhoDestino);
+        String hashFile = GerarHashArquivo(CaminhoDestino);
         HashDestino = hashFile;
     }
 
     protected void DefinirHashBackup()
     {
-        string hashFile = GerarHashArquivo(CaminhoBackup);
+        String hashFile = GerarHashArquivo(CaminhoBackup);
         HashBackup = hashFile;
     }
 
-    public virtual bool ValidarArquivoZip()
+    public virtual Boolean ValidarArquivoZip()
     {
-        byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
-        byte[] xmlBytes;
+        Byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
+        Byte[] xmlBytes;
 
         try
         {
@@ -130,7 +129,7 @@ public class OrderFileProcessing
                 xmlDoc.LoadXml(System.Text.Encoding.UTF8.GetString(xmlBytes));
 
                 XmlNode? exportacoes = xmlDoc.SelectSingleNode("//dataset/exportacao");
-                
+
                 IdExportacao = Convert.ToUInt16(exportacoes?.SelectSingleNode("_id")?.InnerText);
 
                 XmlNodeList? nodes = xmlDoc.SelectNodes("//dataset/programacao_retorno");
@@ -141,11 +140,11 @@ public class OrderFileProcessing
                 {
                     OrderTalhoes.Add(ProcessarTalhao(programacao));
                 }
-                
+
                 XmlNodeList? nodesImagem = xmlDoc.SelectNodes("//dataset/programacao_imagem");
 
                 if (nodesImagem == null) return ArquivoZipValido = true;
-                
+
                 foreach (XmlNode imagem in nodesImagem)
                 {
                     OrderImagens.Add(ProcessarImagem(imagem));
@@ -158,37 +157,37 @@ public class OrderFileProcessing
         {
             return ArquivoZipValido = false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             return ArquivoZipValido = false;
         }
-        
+
     }
 
     protected OrderTalhaoProcessing ProcessarTalhao(XmlNode talhao)
     {
-        var order = new OrderTalhaoProcessing
+        OrderTalhaoProcessing order = new OrderTalhaoProcessing
         {
-            DataSituacao = DateTime.ParseExact(talhao.SelectSingleNode("dt_situacao")?.InnerText ?? string.Empty,
+            DataSituacao = DateTime.ParseExact(talhao.SelectSingleNode("dt_situacao")?.InnerText ?? String.Empty,
                 "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-            Id = Convert.ToUInt32(talhao.SelectSingleNode("_id")?.InnerText ?? string.Empty),
-            IdArea = Convert.ToUInt32(talhao.SelectSingleNode("id_area_emp")?.InnerText ?? string.Empty),
-            IdBloco = Convert.ToUInt32(talhao.SelectSingleNode("id_bloco")?.InnerText ?? string.Empty),
+            Id = Convert.ToUInt32(talhao.SelectSingleNode("_id")?.InnerText ?? String.Empty),
+            IdArea = Convert.ToUInt32(talhao.SelectSingleNode("id_area_emp")?.InnerText ?? String.Empty),
+            IdBloco = Convert.ToUInt32(talhao.SelectSingleNode("id_bloco")?.InnerText ?? String.Empty),
 
-            Latitude = talhao.SelectSingleNode("vl_latitude")?.InnerText ?? string.Empty,
-            Longitude = talhao.SelectSingleNode("vl_longitude")?.InnerText ?? string.Empty,
+            Latitude = talhao.SelectSingleNode("vl_latitude")?.InnerText ?? String.Empty,
+            Longitude = talhao.SelectSingleNode("vl_longitude")?.InnerText ?? String.Empty,
 
             Modulo = Modulo.ToString(),
             IdCiclo = IdCiclo.ToString(),
-            ImeiColetor = talhao.SelectSingleNode("cd_imei_situacao")?.InnerText ?? string.Empty,
+            ImeiColetor = talhao.SelectSingleNode("cd_imei_situacao")?.InnerText ?? String.Empty,
             NomeArquivo = Nome.ToString(),
 
-            ProgramacaoGuid = talhao.SelectSingleNode("id_programacao_guid")?.InnerText ?? string.Empty,
-            ProgramacaoRetornoGuid = talhao.SelectSingleNode("id_programacao_retorno_guid")?.InnerText ?? string.Empty,
+            ProgramacaoGuid = talhao.SelectSingleNode("id_programacao_guid")?.InnerText ?? String.Empty,
+            ProgramacaoRetornoGuid = talhao.SelectSingleNode("id_programacao_retorno_guid")?.InnerText ?? String.Empty,
 
-            Motivo = talhao.SelectSingleNode("ds_motivo_obs")?.InnerText ?? string.Empty,
+            Motivo = talhao.SelectSingleNode("ds_motivo_obs")?.InnerText ?? String.Empty,
             IdEmpresa = IdEmpresa,
-            Observacao = talhao.SelectSingleNode("ds_obs")?.InnerText ?? string.Empty,
+            Observacao = talhao.SelectSingleNode("ds_obs")?.InnerText ?? String.Empty,
             IdEquipe = Convert.ToUInt16(talhao.SelectSingleNode("id_equipe_situacao")?.InnerText),
             IdExportacao = IdExportacao,
             IdMotivo = Convert.ToUInt16(talhao.SelectSingleNode("id_motivo")?.InnerText),
@@ -202,14 +201,14 @@ public class OrderFileProcessing
 
     protected OrderImageProcessing ProcessarImagem(XmlNode imagem)
     {
-        string nomeImagem = imagem.SelectSingleNode("no_imagem")?.InnerText ?? string.Empty;
-        string programacaoRetornoGuid = imagem.SelectSingleNode("id_programacao_retorno_guid")?.InnerText ?? string.Empty;
-        string caminhoBackup = Path.GetRelativePath(OnedriveUtils.CaminhoOnedrive, CaminhoBackup);
+        String nomeImagem = imagem.SelectSingleNode("no_imagem")?.InnerText ?? String.Empty;
+        String programacaoRetornoGuid = imagem.SelectSingleNode("id_programacao_retorno_guid")?.InnerText ?? String.Empty;
+        String caminhoBackup = Path.GetRelativePath(OnedriveUtils.CaminhoOnedrive, CaminhoBackup);
 
         return new OrderImageProcessing(programacaoRetornoGuid, nomeImagem, caminhoBackup);
     }
-    
-    public Task<bool> ValidarProcessamento()
+
+    public Task<Boolean> ValidarProcessamento()
     {
         if (HashOrigem != HashDestino)
             return Task.FromResult(false);
@@ -228,7 +227,7 @@ public class OrderFileProcessing
 
         if (!Path.Exists(CaminhoBackup))
             return Task.FromResult(false);
-        
+
         ProcessamentoValido = true;
         return Task.FromResult(true);
     }
@@ -236,24 +235,32 @@ public class OrderFileProcessing
     public Task DefinirStatusOffline()
     {
         if (!ProcessamentoValido) return Task.CompletedTask;
-        
+
         OnedriveUtils.SetOffline(CaminhoBackup);
-        
+
         return Task.CompletedTask;
     }
-    
-    public virtual void Copy(string caminhoOrigem, string caminhoDestino)
+
+    public virtual void Copy(String caminhoOrigem, String caminhoDestino)
     {
-        string? diretorioDestino = Path.GetDirectoryName(caminhoDestino);
+        String? diretorioDestino = Path.GetDirectoryName(caminhoDestino);
 
         if (!Directory.Exists(diretorioDestino) && diretorioDestino != null)
             Directory.CreateDirectory(path: diretorioDestino);
-        
-        File.Copy(caminhoOrigem, caminhoDestino, true);
+
+        try
+        {
+            File.Copy(caminhoOrigem, caminhoDestino, true);
+        }
+        catch(Exception ex)
+        {
+
+        }
+
         DefinirHashDestino();
     }
-    
-    public void Move(string caminhoOrigem, string caminhoBackup, bool fake = false)
+
+    public void Move(String caminhoOrigem, String caminhoBackup, Boolean fake = false)
     {
         if (HashOrigem != HashDestino)
         {
@@ -261,33 +268,40 @@ public class OrderFileProcessing
             return;
         }
 
-        string? diretorioBackup = Path.GetDirectoryName(caminhoBackup);
+        String? diretorioBackup = Path.GetDirectoryName(caminhoBackup);
 
         if (!Directory.Exists(diretorioBackup) && diretorioBackup != null)
             Directory.CreateDirectory(path: diretorioBackup);
 
-        if (fake == false)
-            File.Move(caminhoOrigem, caminhoBackup, true);
-        else
-            File.Copy(caminhoOrigem, caminhoBackup, true);
+        try
+        {
+            if (fake == false)
+                File.Move(caminhoOrigem, caminhoBackup, true);
+            else
+                File.Copy(caminhoOrigem, caminhoBackup, true);
+        }
+        catch(Exception ex)
+        {
+
+        }
 
         DefinirHashBackup();
     }
-    
-    private static string GerarHashArquivo(string caminhoOrigem)
+
+    private static String GerarHashArquivo(String caminhoOrigem)
     {
         if (!Path.Exists(caminhoOrigem)) return Guid.NewGuid().ToString();
-        
+
         using (MD5 md5 = MD5.Create())
         {
             try
             {
                 using FileStream stream = File.OpenRead(caminhoOrigem);
 
-                byte[] hash = md5.ComputeHash(stream);
+                Byte[] hash = md5.ComputeHash(stream);
                 StringBuilder stringBuilder = new StringBuilder();
 
-                foreach (byte sb in hash)
+                foreach (Byte sb in hash)
                 {
                     stringBuilder.Append(sb.ToString("x2"));
                 }
@@ -301,12 +315,12 @@ public class OrderFileProcessing
         }
     }
 
-    public override string ToString()
+    public override String ToString()
     {
         return $"Arquivo: {NomeSemExtensao}, Modulo: {Modulo}, Empresa: {IdEmpresa}, Guid: {Guid}, Validado: {ArquivoZipValido}, Hash: {HashOrigem}";
     }
 
-    public bool IsSucessoProcessamento()
+    public Boolean IsSucessoProcessamento()
     {
         return ProcessamentoValido;
     }
@@ -314,22 +328,22 @@ public class OrderFileProcessing
 
 public class OrderFileProcessingSmq : OrderFileProcessing
 {
-    public string CaminhoCorrompido { get; set; }
-    public string? Avaliacao { get; private set; }
-    public string? Levantamento { get; private set; }
-    public uint IdBloco { get; set; }
-    public bool TemDiretorioPersonalizado { get;set; }
+    public String CaminhoCorrompido { get; set; }
+    public String? Avaliacao { get; private set; }
+    public String? Levantamento { get; private set; }
+    public UInt32 IdBloco { get; set; }
+    public Boolean TemDiretorioPersonalizado { get; set; }
 
-    public OrderFileProcessingSmq(string caminhoOrigem, string diretorioDestino, string diretorioBackup, string? diretorioCorrompido, string modulo, uint idEmpresa) : base(caminhoOrigem, diretorioDestino, diretorioBackup, modulo, idEmpresa)
+    public OrderFileProcessingSmq(String caminhoOrigem, String diretorioDestino, String diretorioBackup, String? diretorioCorrompido, String modulo, UInt32 idEmpresa) : base(caminhoOrigem, diretorioDestino, diretorioBackup, modulo, idEmpresa)
     {
         CaminhoCorrompido = Path.Combine(diretorioCorrompido ?? diretorioDestino, Nome);
         TemDiretorioPersonalizado = false;
     }
 
-    public override bool ValidarArquivoZip()
+    public override Boolean ValidarArquivoZip()
     {
-        byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
-        byte[] xmlBytes;
+        Byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
+        Byte[] xmlBytes;
 
         try
         {
@@ -396,12 +410,12 @@ public class OrderFileProcessingSmq : OrderFileProcessing
 
     }
 
-    public void DefinirAvaliacao(string avaliacao)
+    public void DefinirAvaliacao(String avaliacao)
     {
         Avaliacao = avaliacao;
     }
 
-    public void DefinirLevantamento(string levantamento)
+    public void DefinirLevantamento(String levantamento)
     {
         Levantamento = levantamento;
     }
@@ -410,26 +424,26 @@ public class OrderFileProcessingSmq : OrderFileProcessing
     {
         CaminhoDestino = CaminhoCorrompido;
     }
-    
-    public void DefinirDestinoPersonalizado(List<string> pastaPersonalizada)
+
+    public void DefinirDestinoPersonalizado(List<String> pastaPersonalizada)
     {
         DateTime diaProcessamento = DateTime.Today.Date;
-        (string ano, string mes, string dia) = (diaProcessamento.Year.ToString("0000"), diaProcessamento.Month.ToString("00"), diaProcessamento.Day.ToString("00"));
+        (String ano, String mes, String dia) = (diaProcessamento.Year.ToString("0000"), diaProcessamento.Month.ToString("00"), diaProcessamento.Day.ToString("00"));
 
-        if (pastaPersonalizada.Count == 1) pastaPersonalizada.Add(string.Empty);
+        if (pastaPersonalizada.Count == 1) pastaPersonalizada.Add(String.Empty);
 
-        string pastaAvaliacao = pastaPersonalizada.First();
-        string pastaLevantamento = pastaPersonalizada.Last();
+        String pastaAvaliacao = pastaPersonalizada.First();
+        String pastaLevantamento = pastaPersonalizada.Last();
 
         TemDiretorioPersonalizado = true;
 
         base.CaminhoDestino = Path.Combine(base.DiretorioDestino, pastaAvaliacao, "Avaliacao", ano, mes, dia, "Dados", pastaLevantamento, base.Nome);
     }
 
-    public void Copy(string caminhoOrigem, string caminhoDestino, bool temDiretorioPersonalizado, List<string> pastasCriadasSessao)
+    public void Copy(String caminhoOrigem, String caminhoDestino, Boolean temDiretorioPersonalizado, List<String> pastasCriadasSessao)
     {
-        string? diretorioDestino = Path.GetDirectoryName(caminhoDestino);
-        string nomeArquivo = Path.GetFileName(caminhoDestino);
+        String? diretorioDestino = Path.GetDirectoryName(caminhoDestino);
+        String nomeArquivo = Path.GetFileName(caminhoDestino);
 
         if (diretorioDestino != null)
         {

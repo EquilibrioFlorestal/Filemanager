@@ -2,16 +2,16 @@
 
 public class Arquivo
 {
-    public int Id { get; set; }
-    
-    public uint IdEmpresa { get; set; }
-    public required string NomeUsuario { get; set; }
-    public required string NomeMaquina { get; set; }
-    public required string NomeArquivo { get; set; }
-    public long TamanhoBytes { get; set; }
-    public ushort QuantidadeImagens { get; set; }
-    public required string Modulo { get; set; }
-    public ushort QuantidadeTalhoes { get; set; }
+    public Int32 Id { get; set; }
+
+    public UInt32 IdEmpresa { get; set; }
+    public required String NomeUsuario { get; set; }
+    public required String NomeMaquina { get; set; }
+    public required String NomeArquivo { get; set; }
+    public Int64 TamanhoBytes { get; set; }
+    public UInt16 QuantidadeImagens { get; set; }
+    public required String Modulo { get; set; }
+    public UInt16 QuantidadeTalhoes { get; set; }
     public DateTime CreateAt { get; set; }
 
 }

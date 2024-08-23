@@ -2,8 +2,8 @@
 
 public class Modulo
 {
-    public const string DICE = "DICE";
-    public const string SOF = "SOF";
-    public const string SMPD = "SMPD";
-    public const string SMQ = "SMQ";
+    public const String DICE = "DICE";
+    public const String SOF = "SOF";
+    public const String SMPD = "SMPD";
+    public const String SMQ = "SMQ";
 }

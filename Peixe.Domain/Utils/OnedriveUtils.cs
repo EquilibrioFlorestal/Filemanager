@@ -11,29 +11,29 @@ internal static class FileAttributesOnedrive
 
 public static class OnedriveUtils
 {
-    public static readonly string CaminhoOnedrive = Environment.GetEnvironmentVariable("OneDrive", EnvironmentVariableTarget.User) ?? string.Empty;
+    public static readonly String CaminhoOnedrive = Environment.GetEnvironmentVariable("ManualOneDrive", EnvironmentVariableTarget.User) ?? String.Empty;
 
-    public static bool CheckProcessOnedrive()
+    public static Boolean CheckProcessOnedrive()
     {
         Process[] pname = Process.GetProcessesByName("OneDrive");
-        return (pname.Length != 0);
+        return pname.Length != 0;
     }
-    
-    public static List<string> GetDownloadedFiles(string caminho, string modulo, string extensao)
+
+    public static List<String> GetDownloadedFiles(String caminho, String modulo, String extensao)
     {
-        extensao = extensao.Replace(".", string.Empty);
+        extensao = extensao.Replace(".", String.Empty);
         return Directory.GetFiles(caminho, $"{modulo}_*.{extensao}", SearchOption.AllDirectories).Where(OnedriveUtils.IsDownloaded).ToList();
     }
 
-    private static bool IsDownloaded(string arquivo)
+    private static Boolean IsDownloaded(String arquivo)
     {
         if (!File.Exists(arquivo)) return false;
         FileAttributes currentAttributes = File.GetAttributes(arquivo);
-        bool isDownloaded = (currentAttributes & FileAttributesOnedrive.Downloaded) == FileAttributesOnedrive.Downloaded;
+        Boolean isDownloaded = ( currentAttributes & FileAttributesOnedrive.Downloaded ) == FileAttributesOnedrive.Downloaded;
         return !isDownloaded;
     }
 
-    public static void SetOffline(string arquivo)
+    public static void SetOffline(String arquivo)
     {
         if (!File.Exists(arquivo)) return;
         FileAttributes currentAttributes = File.GetAttributes(arquivo);
@@ -42,7 +42,7 @@ public static class OnedriveUtils
         File.SetAttributes(arquivo, currentAttributes);
     }
 
-    public static void SetOnline(string arquivo)
+    public static void SetOnline(String arquivo)
     {
         if (!File.Exists(arquivo)) return;
         FileAttributes currentAttributes = File.GetAttributes(arquivo);

@@ -1,51 +1,52 @@
 ﻿using Domain.Adapters;
 using MediatR;
+using System.ComponentModel.Design;
 
 namespace Domain.CQRS;
 
-public class RequiredProcessNotFoundNotification(string processName) : INotification
+public class RequiredProcessNotFoundNotification(String processName) : INotification
 {
-    public string nomeProcesso { get; set; } = processName;
+    public String nomeProcesso { get; set; } = processName;
 }
-public class BackgroundTagOfflineExecutionNotification(int quantidade) : INotification
+public class BackgroundTagOfflineExecutionNotification(Int32 quantidade) : INotification
 {
-    public int quantidade { get; set; } = quantidade;
-}
-
-public class AjusteDelayTagOfflineNotification(ushort newDelay) : INotification
-{
-    public ushort delay { get; set; } = newDelay;
-}
-public class AjusteDelayNotification(ushort newDelayValue) : INotification
-{
-    public ushort delay { get; set; } = newDelayValue;
+    public Int32 quantidade { get; set; } = quantidade;
 }
 
-public class AjusteBatchNotification(ushort newBatch) : INotification
+public class AjusteDelayTagOfflineNotification(UInt16 newDelay) : INotification
 {
-    public ushort batch { get; set; } = newBatch;
+    public UInt16 delay { get; set; } = newDelay;
+}
+public class AjusteDelayNotification(UInt16 newDelayValue) : INotification
+{
+    public UInt16 delay { get; set; } = newDelayValue;
 }
 
-public class FalhaTagArquivoConfiguracaoNotification(string tagName, string mensagem) : INotification
+public class AjusteBatchNotification(UInt16 newBatch) : INotification
 {
-    public string tag { get; set; } = tagName;
-    public string mensagem { get; set; } = mensagem;
+    public UInt16 batch { get; set; } = newBatch;
 }
 
-public class ArquivoConfiguracaoAusenteNotification(string filename) : INotification
+public class FalhaTagArquivoConfiguracaoNotification(String tagName, String mensagem) : INotification
 {
-    public string filename { get; set; } = filename;
+    public String tag { get; set; } = tagName;
+    public String mensagem { get; set; } = mensagem;
 }
-    
+
+public class ArquivoConfiguracaoAusenteNotification(String filename) : INotification
+{
+    public String filename { get; set; } = filename;
+}
+
 public class ArquivoCorrompidoNotification(OrderFileProcessing order) : INotification
 {
     public OrderFileProcessing order { get; set; } = order;
 }
 
-public class ArquivoProcessandoNotification(OrderFileProcessing order, bool transferido) : INotification
+public class ArquivoProcessandoNotification(OrderFileProcessing order, Boolean transferido) : INotification
 {
     public OrderFileProcessing order { get; set; } = order;
-    public bool transferido { get; set; } = transferido;
+    public Boolean transferido { get; set; } = transferido;
 }
 
 public class TarefaInvalidaNotification(OrderProcessing order) : INotification
@@ -73,21 +74,26 @@ public class TransferenciaInvalidaNotification(OrderFileProcessing order) : INot
     public OrderFileProcessing order { get; set; } = order;
 }
 
-public class ErroAdicionarTalhaoNotification(OrderTalhaoProcessing order, string mensagem) : INotification
+public class ErroAdicionarTalhaoNotification(OrderTalhaoProcessing order, String mensagem) : INotification
 {
     public OrderTalhaoProcessing order { get; set; }
-    public string mensagem { get; set; } = mensagem;
+    public String mensagem { get; set; } = mensagem;
 }
 
-public class ErroAdicionarImagemNotification(OrderImageProcessing order, string mensagem) : INotification
+public class ErroAdicionarImagemNotification(OrderImageProcessing order, String mensagem) : INotification
 {
     public OrderImageProcessing order { get; set; } = order;
-    public string mensagem { get; set; } = mensagem;
+    public String mensagem { get; set; } = mensagem;
 }
 
-public class ErroAdicionarArquivoNotification(OrderFileProcessing order, string mensagem) : INotification
+public class ErroAdicionarArquivoNotification(OrderFileProcessing order, String mensagem) : INotification
 {
     public OrderFileProcessing order { get; set; } = order;
-    public string mensagem { get; set; } = mensagem;
-    
+    public String mensagem { get; set; } = mensagem;
+}
+
+public class ErroAtualizarTalhaoNaProgramacaoNotification(OrderTalhaoProcessing order, String mensagem) : INotification
+{
+    public OrderTalhaoProcessing order { get; set; } = order;
+    public String mensagem { get; set; } = mensagem;
 }

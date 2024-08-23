@@ -4,6 +4,6 @@ namespace Domain.Interfaces;
 
 public interface ITalhaoService
 {
-    Task<bool> VerificarCadastrado(string nomeArquivo, string programacaoRetornoGuid);
-    Task<Tuple<bool, string>> CadastrarTalhao(OrderTalhaoProcessing requisicao);
+    Task<Boolean> VerificarCadastrado(String nomeArquivo, String programacaoRetornoGuid);
+    Task<Tuple<Boolean, String>> CadastrarTalhao(OrderTalhaoProcessing requisicao);
 }

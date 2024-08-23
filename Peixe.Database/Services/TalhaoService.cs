@@ -1,26 +1,35 @@
 ﻿using Domain.Adapters;
-using Domain.CQRS;
 using Domain.Interfaces;
 using Domain.Models;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Peixe.Database.Context;
-using Serilog;
 
 namespace Peixe.Database.Services;
 
-public class TalhaoService(AppDbContext context) : ITalhaoService
+public class TalhaoService : ITalhaoService
 {
-    private readonly AppDbContext _context = context;
 
-    public Task<bool> VerificarCadastrado(string nomeArquivo, string programacaoRetornoGuid)
+    private readonly IServiceProvider _serviceProvider;
+
+    public TalhaoService(IServiceProvider serviceProvider)
     {
-        return Task.FromResult(_context.Talhoes.Any(x => x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task<Tuple<bool, string>> CadastrarTalhao(OrderTalhaoProcessing requisicao)
+    public Task<Boolean> VerificarCadastrado(String nomeArquivo, String programacaoRetornoGuid)
     {
-        _context.Talhoes.Add(new Talhao
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        return Task.FromResult(context.Talhoes.Any(x => x.ProgramacaoRetornoGuid == programacaoRetornoGuid));
+    }
+
+    public async Task<Tuple<Boolean, String>> CadastrarTalhao(OrderTalhaoProcessing requisicao)
+    {
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        context.Talhoes.Add(new Talhao
         {
             IdEmpresa = Convert.ToInt32(requisicao.IdEmpresa),
             Modulo = requisicao.Modulo,
@@ -46,8 +55,8 @@ public class TalhaoService(AppDbContext context) : ITalhaoService
         });
         try
         {
-            await _context.SaveChangesAsync();
-            return await Task.FromResult(Tuple.Create(true, string.Empty));
+            await context.SaveChangesAsync();
+            return await Task.FromResult(Tuple.Create(true, String.Empty));
         }
         catch (Exception ex)
         {

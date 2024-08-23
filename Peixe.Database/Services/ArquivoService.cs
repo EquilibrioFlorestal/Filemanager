@@ -1,26 +1,34 @@
 ﻿using Domain.Adapters;
-using Domain.CQRS;
 using Domain.Interfaces;
 using Domain.Models;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Peixe.Database.Context;
-using Serilog;
 
 namespace Peixe.Database.Services;
 
-public class ArquivoService(AppDbContext context) : IArquivoService
+public class ArquivoService : IArquivoService
 {
-    private readonly AppDbContext _context = context;
+    private readonly IServiceProvider _serviceProvider;
 
-    public Task<bool> VerificarCadastrado(string nomeArquivo, string modulo, int idEmpresa)
+    public ArquivoService(IServiceProvider serviceProvider)
     {
-        return Task.FromResult(_context.Arquivos.Select(x => x.NomeArquivo).Any(x => x == nomeArquivo));
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task<Tuple<bool, string>> CadastrarArquivo(OrderProcessing requisicao, OrderFileProcessing requisicaoArquivo)
+    public Task<Boolean> VerificarCadastrado(String nomeArquivo, String modulo, Int32 idEmpresa)
     {
-        _context.Arquivos.Add(new Arquivo
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        return Task.FromResult(context.Arquivos.Select(x => x.NomeArquivo).Any(x => x == nomeArquivo));
+    }
+
+    public async Task<Tuple<Boolean, String>> CadastrarArquivo(OrderProcessing requisicao, OrderFileProcessing requisicaoArquivo)
+    {
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        context.Arquivos.Add(new Arquivo
         {
             IdEmpresa = requisicao.IdEmpresa,
             Modulo = requisicao.Modulo,
@@ -35,8 +43,8 @@ public class ArquivoService(AppDbContext context) : IArquivoService
 
         try
         {
-            await _context.SaveChangesAsync();
-            return Tuple.Create(true, string.Empty);
+            await context.SaveChangesAsync();
+            return Tuple.Create(true, String.Empty);
         }
         catch (Exception ex)
         {

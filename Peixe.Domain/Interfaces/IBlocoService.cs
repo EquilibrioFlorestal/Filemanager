@@ -1,9 +1,6 @@
-﻿using Domain.Models;
+﻿namespace Domain.Interfaces;
 
-namespace Domain.Interfaces
+public interface IBlocoService
 {
-    public interface IBlocoService
-    {
-        Task<string> ListarBloco(uint idBloco, uint idCiclo);
-    }
+    Task<String> ListarBloco(UInt32 idBloco, UInt32 idCiclo);
 }

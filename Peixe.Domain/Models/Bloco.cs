@@ -1,9 +1,8 @@
-﻿namespace Domain.Models
+﻿namespace Domain.Models;
+
+public class Bloco
 {
-    public class Bloco
-    {
-        public int Id { get; set; }
-        public int IdCiclo { get; set; }
-        public required string Descricao { get; set; }
-    }
+    public Int32 Id { get; set; }
+    public Int32 IdCiclo { get; set; }
+    public required String Descricao { get; set; }
 }

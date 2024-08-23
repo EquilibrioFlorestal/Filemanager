@@ -2,26 +2,26 @@
 
 public class Talhao
 {
-    public int Id { get; set; }
-    public int IdArea { get; set; }
-    public int IdBloco { get; set; }
-    public int IdSituacao { get; set; }
+    public Int32 Id { get; set; }
+    public Int32 IdArea { get; set; }
+    public Int32 IdBloco { get; set; }
+    public Int32 IdSituacao { get; set; }
     public DateTime DataSituacao { get; set; }
-    public int IdMotivo { get; set; }
-    public string? Motivo { get; set; }
-    public int IdUsuario { get; set; }
-    public int IdEquipe { get; set; }
-    public string ImeiColetor { get; set; }
-    public string? Observacao { get; set; }
-    public string ProgramacaoGuid { get; set; }
-    public string ProgramacaoRetornoGuid { get; set; }
-    public int IdExportacao { get; set; }
-    public char SnNovo { get; set; }
-    public string Latitude { get; set; }
-    public string Longitude { get; set; }
-    public string NomeArquivo { get; set; }
-    public string IdCiclo { get; set; }
-    public int IdEmpresa { get; set; }
-    public string Modulo { get; set; }
+    public Int32 IdMotivo { get; set; }
+    public String? Motivo { get; set; }
+    public Int32 IdUsuario { get; set; }
+    public Int32 IdEquipe { get; set; }
+    public String ImeiColetor { get; set; }
+    public String? Observacao { get; set; }
+    public String ProgramacaoGuid { get; set; }
+    public String ProgramacaoRetornoGuid { get; set; }
+    public Int32 IdExportacao { get; set; }
+    public Char SnNovo { get; set; }
+    public String Latitude { get; set; }
+    public String Longitude { get; set; }
+    public String NomeArquivo { get; set; }
+    public String IdCiclo { get; set; }
+    public Int32 IdEmpresa { get; set; }
+    public String Modulo { get; set; }
     public DateTime CreateAt { get; set; }
 }
