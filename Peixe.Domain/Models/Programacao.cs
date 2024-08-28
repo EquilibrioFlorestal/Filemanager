@@ -7,7 +7,12 @@ public class Programacao
     public Int32 Id { get; set; }
     public Guid IdProgramacaoGuid { get; set; }
 
+    public Int32 IdBloco { get; set; }
+    public Int32 IdAreaEmp { get; set; }
+    public Int32 IdTipoLevantamento { get; set; }
+
     public Int32 IdSituacao { get; set; }
+    public DateTime? DataProgramacao { get; set; }
     public DateTime? DataSituacao { get; set; }
     public Int32? IdMotivoSituacao { get; set; }
     public String? ObservacaoUsuario { get; set; }

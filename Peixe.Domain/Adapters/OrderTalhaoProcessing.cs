@@ -8,6 +8,7 @@ public class OrderTalhaoProcessing
     public UInt32 IdBloco { get; set; } // id_bloco
     public UInt32 IdSituacao { get; set; } // id_situacao
     public DateTime DataSituacao { get; set; } // dt_situacao
+    public UInt32 IdTipoLevantamento { get; set; } // id_tipo_levantamento
     public UInt32 IdMotivo { get; set; } // id_motivo
     public String? Motivo { get; set; } // ds_motivo_obs
     public UInt32 IdUsuario { get; init; } // id_usuario_situacao

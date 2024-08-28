@@ -166,6 +166,7 @@ public class OrderFileProcessing
 
     protected OrderTalhaoProcessing ProcessarTalhao(XmlNode talhao)
     {
+        UInt32 _idTipoLevantamento = Convert.ToUInt32(talhao.SelectSingleNode("id_tipo_levantamento")?.InnerText ?? String.Empty);
         OrderTalhaoProcessing order = new OrderTalhaoProcessing
         {
             DataSituacao = DateTime.ParseExact(talhao.SelectSingleNode("dt_situacao")?.InnerText ?? String.Empty,
@@ -177,9 +178,10 @@ public class OrderFileProcessing
             Latitude = talhao.SelectSingleNode("vl_latitude")?.InnerText ?? String.Empty,
             Longitude = talhao.SelectSingleNode("vl_longitude")?.InnerText ?? String.Empty,
 
+            IdTipoLevantamento = ( _idTipoLevantamento == 102 ) ? 101u : _idTipoLevantamento,
             Modulo = Modulo.ToString(),
             IdCiclo = IdCiclo.ToString(),
-            ImeiColetor = talhao.SelectSingleNode("cd_imei_situacao")?.InnerText ?? String.Empty,
+            ImeiColetor = talhao.SelectSingleNode("cd_imei_situacao")?.InnerText.ToUpper() ?? String.Empty,
             NomeArquivo = Nome.ToString(),
 
             ProgramacaoGuid = talhao.SelectSingleNode("id_programacao_guid")?.InnerText ?? String.Empty,
@@ -252,7 +254,7 @@ public class OrderFileProcessing
         {
             File.Copy(caminhoOrigem, caminhoDestino, true);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
 
         }
@@ -280,7 +282,7 @@ public class OrderFileProcessing
             else
                 File.Copy(caminhoOrigem, caminhoBackup, true);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
 
         }

@@ -26,22 +26,77 @@ public class ProgramacaoService : IProgramacaoService
 
             Programacao? programacao = await context.Programacoes
                 .Where(x => x.IdProgramacaoGuid == idProgramacaoGuidTalhao)
-                .Where(x => x.IdSituacao == 1)
                 .FirstOrDefaultAsync();
 
-            if (programacao == null) return new(null, "");
+            if (programacao == null && request.SnNovo == 'S')
+            {
+                programacao = await Cadastrar(request);
+                return new(programacao, "Sucesso.");
+            }
+            
+            if (programacao == null)
+                return new(null, "");            
 
-            programacao = programacao.Atualizar(request);
+            if (programacao.IdSituacao == 1)
+            {
+                programacao = programacao.Atualizar(request);
 
-            context.Update(programacao);
-            await context.SaveChangesAsync();
+                context.Update(programacao);
+                await context.SaveChangesAsync();
 
-            return new(programacao, "Sucesso.");
+                return new(programacao, "Sucesso.");
+            }
+
+            return new(programacao, "");
 
         }
         catch (Exception ex)
         {
             return new(null, ex.Message);
+        }
+    }
+
+    public async Task<Programacao?> Cadastrar(OrderTalhaoProcessing request)
+    {
+        try
+        {
+            using IServiceScope scope = _serviceProvider.CreateScope();
+            using EPFDbContext context = scope.ServiceProvider.GetRequiredService<EPFDbContext>();
+
+            Boolean parseGuid = Guid.TryParse(request.ProgramacaoGuid, out Guid idProgramacaoGuid);
+            Boolean parseGuidRetorno = Guid.TryParse(request.ProgramacaoRetornoGuid, out Guid idProgramacaoRetornoGuid);
+
+            if (!parseGuid) await Task.CompletedTask;
+
+            Programacao programacao = new()
+            {
+                IdAreaEmp = (Int32)request.IdArea,
+                IdBloco = (Int32)request.IdBloco,
+                IdTipoLevantamento = (Int32)request.IdTipoLevantamento,
+                IdProgramacaoGuid = idProgramacaoGuid,
+                IdSituacao = (Int32)request.IdSituacao,
+                DataSituacao = request.DataSituacao,
+                DataProgramacao = new DateTime(request.DataSituacao.Year, request.DataSituacao.Month, request.DataSituacao.Day, request.DataSituacao.Hour - 1, 0, 0),
+                IdMotivoSituacao = (Int32)request.IdMotivo,
+                ObservacaoUsuario = request.Observacao,
+                IdUsuarioSituacao = (Int32)request.IdUsuario,
+                SnNovo = 'S',
+                IdExportacao = (Int32)request.IdExportacao,
+                IdEquipeSituacao = (Int32)request.IdEquipe,
+                ImeiSituacao = request.ImeiColetor,
+                IdProgramacaoRetornoGuid = idProgramacaoRetornoGuid,
+                Longitude = Decimal.TryParse(request.Longitude.PadRight(12, '0').Substring(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lng) ? lng : 0,
+                Latitude = Decimal.TryParse(request.Latitude.PadRight(12, '0').Substring(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lat) ? lat : 0,
+            };
+
+            context.Programacoes.Add(programacao);
+            await context.SaveChangesAsync(CancellationToken.None);
+
+            return programacao;
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 }
