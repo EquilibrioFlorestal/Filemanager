@@ -25,19 +25,17 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-
         lock (LockObj) { AnsiConsole.MarkupLine($"[red]debug[/]: {DebugMode}."); }
 
         while (!cancellationToken.IsCancellationRequested)
         {
-
-            //if (!OnedriveUtils.CheckProcessOnedrive())
-            //{
-            //    Exception ex = new Exception("No OneDrive process was found.");
-            //    await _mediator.Publish(new RequiredProcessNotFoundNotification("OneDrive"), cancellationToken);
-            //    AnsiConsole.WriteException(ex);
-            //    return;
-            //}
+            if (!OnedriveUtils.CheckProcessOnedrive())
+            {
+                Exception ex = new Exception("No OneDrive process was found.");
+                await _mediator.Publish(new RequiredProcessNotFoundNotification("OneDrive"), cancellationToken);
+                AnsiConsole.WriteException(ex);
+                return;
+            }
 
             Task verificarFilaTask = Task.Run(() => VerificarFilaTarefasAsync(cancellationToken), cancellationToken);
             Task verificaArquivoBaixado = Task.Run(() => VerificaTodosArquivosBaixados(cancellationToken), cancellationToken);
@@ -260,7 +258,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                     tasks[i] = Task.Run(async () =>
                     {
                         (Programacao? programacao, String mensagemAtualizar) = programacaoService.Atualizar(orderTalhao).Result;
-                        //if (programacao == null) await _mediator.Publish(new ErroAtualizarTalhaoNaProgramacaoNotification(orderTalhao, mensagemAtualizar));
+                        if (programacao == null) await _mediator.Publish(new ErroAtualizarTalhaoNaProgramacaoNotification(orderTalhao, mensagemAtualizar));
 
                         Boolean jaCadastrado = await service.VerificarCadastrado(orderTalhao.NomeArquivo, orderTalhao.ProgramacaoRetornoGuid);
 
@@ -273,7 +271,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                 }
 
                 Task.WhenAll(tasks).Wait();
-                
+
             }
         }
 
