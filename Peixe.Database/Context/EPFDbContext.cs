@@ -30,8 +30,12 @@ public class EPFDbContext : DbContext
 
         modelBuilder.Entity<Programacao>().Property(x => x.Id).HasColumnName("_id");
         modelBuilder.Entity<Programacao>().Property(x => x.IdProgramacaoGuid).HasColumnName("id_programacao_guid");
+        modelBuilder.Entity<Programacao>().Property(x => x.IdAreaEmp).HasColumnName("id_area_emp");
+        modelBuilder.Entity<Programacao>().Property(x => x.IdBloco).HasColumnName("id_bloco");
+        modelBuilder.Entity<Programacao>().Property(x => x.IdTipoLevantamento).HasColumnName("id_tipo_levantamento");
         modelBuilder.Entity<Programacao>().Property(x => x.IdSituacao).HasColumnName("id_situacao");
         modelBuilder.Entity<Programacao>().Property(x => x.DataSituacao).HasColumnName("dt_situacao");
+        modelBuilder.Entity<Programacao>().Property(x => x.DataProgramacao).HasColumnName("dt_monitor_prog");
         modelBuilder.Entity<Programacao>().Property(x => x.IdMotivoSituacao).HasColumnName("id_motivo");
         modelBuilder.Entity<Programacao>().Property(x => x.ObservacaoUsuario).HasColumnName("ds_motivo_obs");
         modelBuilder.Entity<Programacao>().Property(x => x.IdUsuarioSituacao).HasColumnName("id_usuario_situacao");
