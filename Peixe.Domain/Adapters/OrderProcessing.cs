@@ -19,6 +19,7 @@ public class OrderProcessing
 
     public Double ElapsedTime { get; set; }
     public UInt16 FilesDownloaded { get; set; }
+    public UInt16 ObjectsDownload { get; set; }
 
     public List<OrderFileProcessing> OrderFiles { get; set; }
 
@@ -28,6 +29,7 @@ public class OrderProcessing
         PastaDestino = pastaDestino;
         PastaBackup = Path.Combine(OnedriveUtils.CaminhoOnedrive, pastaBackup);
         FilesDownloaded = 0;
+        ObjectsDownload = 0;
 
         PastaOrigem = new List<String>();
         OrderFiles = new List<OrderFileProcessing>();

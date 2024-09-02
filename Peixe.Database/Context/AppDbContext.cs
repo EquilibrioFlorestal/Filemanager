@@ -13,7 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         optionsBuilder.UseSqlServer(
             connectionString: "",
-            options => options.CommandTimeout(180).EnableRetryOnFailure(5));
+            options => options.CommandTimeout(300).EnableRetryOnFailure(5));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

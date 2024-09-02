@@ -9,18 +9,29 @@ public class EPFDbContext : DbContext
 
     public DbSet<Bloco> Blocos { get; set; }
     public DbSet<Programacao> Programacoes { get; set; }
+    public DbSet<Cadastro> Cadastros { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer(
             connectionString: "",
-            options => options.CommandTimeout(180).EnableRetryOnFailure(5));
+            options => options.CommandTimeout(300).EnableRetryOnFailure(5));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        OnModelCreatingCadastro(modelBuilder);
         OnModelCreatingBloco(modelBuilder);
         OnModelCreatingProgramacao(modelBuilder);
+    }
+
+    protected void OnModelCreatingCadastro(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Cadastro>().ToTable("area_emp");
+        modelBuilder.Entity<Cadastro>().HasKey(x => x.Id);
+
+        modelBuilder.Entity<Cadastro>().Property(x => x.Id).HasColumnName("_id");
+        modelBuilder.Entity<Cadastro>().Property(x => x.Equipe).HasColumnName("no_equipe");
     }
 
     protected void OnModelCreatingProgramacao(ModelBuilder modelBuilder)
@@ -32,6 +43,7 @@ public class EPFDbContext : DbContext
         modelBuilder.Entity<Programacao>().Property(x => x.IdProgramacaoGuid).HasColumnName("id_programacao_guid");
         modelBuilder.Entity<Programacao>().Property(x => x.IdAreaEmp).HasColumnName("id_area_emp");
         modelBuilder.Entity<Programacao>().Property(x => x.IdBloco).HasColumnName("id_bloco");
+        modelBuilder.Entity<Programacao>().Property(x => x.Equipe).HasColumnName("no_equipe");
         modelBuilder.Entity<Programacao>().Property(x => x.IdTipoLevantamento).HasColumnName("id_tipo_levantamento");
         modelBuilder.Entity<Programacao>().Property(x => x.IdSituacao).HasColumnName("id_situacao");
         modelBuilder.Entity<Programacao>().Property(x => x.DataSituacao).HasColumnName("dt_situacao");

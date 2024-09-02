@@ -22,6 +22,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
     private UInt16 _maxBatchTask = 20;
     private UInt16 _delayHoursEachBackgroundTagOffline = 8;
     private const Boolean DebugMode = false;
+    private readonly SemaphoreSlim Semaphore = new SemaphoreSlim(100);
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -162,11 +163,11 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                 // AnsiConsole.MarkupLine($"Tarefa: Iniciando {requisicao.Guid}");
                 // _mediator.Publish(new TarefaIniciadaNotification(requisicao), cancellationToken);
 
-                ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
-                
+                 ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
+
                 if (requisicao.FilesDownloaded > 0)
                 {
-                    AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}]");
+                    AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}, Objects: {requisicao.ObjectsDownload}]");
                     _mediator.Publish(new TarefaConcluidaNotification(requisicao), cancellationToken);
                 }
 
@@ -183,9 +184,10 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
         if (requisicao.OrderFiles.Count > 0)
         {
-            Parallel.ForEach(requisicao.OrderFiles, async (requisicaoArquivo) =>
+            ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = _maxBatchTask };
+            Parallel.ForEach(requisicao.OrderFiles, parallelOptions, (requisicaoArquivo) =>
             {
-                await ProcessarArquivo(requisicao, requisicaoArquivo);
+                ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
             });
 
             //foreach (OrderFileProcessing requisicaoArquivo in requisicao.OrderFiles)
@@ -245,66 +247,64 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             ITalhaoService service = scope.ServiceProvider.GetRequiredService<ITalhaoService>();
             IProgramacaoService programacaoService = scope.ServiceProvider.GetRequiredService<IProgramacaoService>();
 
-            IEnumerable<List<OrderTalhaoProcessing>> batches = Partition(requisicaoArquivo.OrderTalhoes, 30);
-
-            foreach (List<OrderTalhaoProcessing> batch in batches)
+            List<Task> tasks = requisicaoArquivo.OrderTalhoes.Select(async orderTalhao =>
             {
-                Task[] tasks = new Task[batch.Count];
-
-                for (Int32 i = 0; i < batch.Count; i++)
+                await Semaphore.WaitAsync();
+                try
                 {
-                    OrderTalhaoProcessing orderTalhao = batch[i];
-
-                    tasks[i] = Task.Run(async () =>
+                    (Programacao? programacao, String mensagemAtualizar) = await programacaoService.Atualizar(orderTalhao);
+                    if (programacao == null)
                     {
-                        (Programacao? programacao, String mensagemAtualizar) = programacaoService.Atualizar(orderTalhao).Result;
-                        if (programacao == null) await _mediator.Publish(new ErroAtualizarTalhaoNaProgramacaoNotification(orderTalhao, mensagemAtualizar));
+                        await _mediator.Publish(new ErroAtualizarTalhaoNaProgramacaoNotification(orderTalhao, mensagemAtualizar));
+                    }
 
-                        Boolean jaCadastrado = await service.VerificarCadastrado(orderTalhao.NomeArquivo, orderTalhao.ProgramacaoRetornoGuid);
+                    Boolean jaCadastrado = await service.VerificarCadastrado(orderTalhao.NomeArquivo, orderTalhao.ProgramacaoRetornoGuid);
 
-                        if (!jaCadastrado)
+                    if (!jaCadastrado)
+                    {
+                        (Boolean resposta, String mensagemCadastrar) = await service.CadastrarTalhao(orderTalhao);
+                        if (!resposta)
                         {
-                            (Boolean resposta, String mensagemCadastrar) = await service.CadastrarTalhao(orderTalhao);
-                            if (!resposta) await _mediator.Publish(new ErroAdicionarTalhaoNotification(orderTalhao, mensagemCadastrar));
+                            await _mediator.Publish(new ErroAdicionarTalhaoNotification(orderTalhao, mensagemCadastrar));
                         }
-                    });
+                    }
                 }
+                finally
+                {
+                    requisicao.ObjectsDownload += 1;
+                    Semaphore.Release();
+                }
+            }).ToList();
 
-                Task.WhenAll(tasks).Wait();
-
-            }
+            await Task.WhenAll(tasks);
         }
 
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
             IImagemService service = scope.ServiceProvider.GetRequiredService<IImagemService>();
 
-            IEnumerable<List<OrderImageProcessing>> batches = Partition(requisicaoArquivo.OrderImagens, 10);
-
-            foreach (List<OrderImageProcessing> batch in batches)
+            List<Task> tasks = requisicaoArquivo.OrderImagens.Select(async orderImagem =>
             {
-                Task[] tasks = new Task[batch.Count];
-
-                for (Int32 i = 0; i < batch.Count; i++)
+                await Semaphore.WaitAsync();
+                try
                 {
-                    OrderImageProcessing orderImagem = batch[i];
+                    Boolean jaCadastrado = await service.VerificarCadastrado(orderImagem.NomeImagem, orderImagem.ProgramacaoRetornoGuid);
 
-                    tasks[i] = Task.Run(async () =>
+                    if (!jaCadastrado)
                     {
-                        Boolean jaCadastrado = await service.VerificarCadastrado(orderImagem.NomeImagem, orderImagem.ProgramacaoRetornoGuid);
-
-                        if (!jaCadastrado)
-                        {
-                            (Boolean resposta, String mensagem) = await service.CadastrarImagem(orderImagem);
-                            if (!resposta) await _mediator.Publish(new ErroAdicionarImagemNotification(orderImagem, mensagem));
-
-                        }
-                    });
+                        (Boolean resposta, String mensagem) = await service.CadastrarImagem(orderImagem);
+                        if (!resposta) await _mediator.Publish(new ErroAdicionarImagemNotification(orderImagem, mensagem));
+                    }
                 }
+                finally
+                {
+                    Semaphore.Release();
+                }
+            }).ToList();
 
-                await Task.WhenAll(tasks);
-            }
+            await Task.WhenAll(tasks);
         }
+        //await Task.Run(() => Console.WriteLine($"Arquivo processado: {requisicaoArquivo.NomeSemExtensao}"));
     }
 
     private static IEnumerable<List<T>> Partition<T>(List<T> source, Int32 size)
@@ -316,4 +316,3 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
     }
 }
 
-    

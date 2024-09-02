@@ -17,6 +17,8 @@ public class Programacao
     public Int32? IdMotivoSituacao { get; set; }
     public String? ObservacaoUsuario { get; set; }
 
+    public String? Equipe { get; set; }
+
     public Int32? IdUsuarioSituacao { get; set; }
 
     public Char SnNovo { get; set; }

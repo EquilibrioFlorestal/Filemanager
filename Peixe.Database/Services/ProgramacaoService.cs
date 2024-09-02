@@ -66,6 +66,14 @@ public class ProgramacaoService : IProgramacaoService
             Boolean parseGuid = Guid.TryParse(request.ProgramacaoGuid, out Guid idProgramacaoGuid);
             Boolean parseGuidRetorno = Guid.TryParse(request.ProgramacaoRetornoGuid, out Guid idProgramacaoRetornoGuid);
 
+            Cadastro? cadastro = await context.Cadastros.Where(x => x.Id == request.IdArea).FirstOrDefaultAsync();
+
+            cadastro ??= new Cadastro
+            {
+                Id = 1,
+                Equipe = String.Empty
+            };
+
             if (!parseGuid) await Task.CompletedTask;
 
             Programacao programacao = new()
@@ -82,11 +90,12 @@ public class ProgramacaoService : IProgramacaoService
                 IdUsuarioSituacao = (Int32)request.IdUsuario,
                 SnNovo = 'S',
                 IdExportacao = (Int32)request.IdExportacao,
+                Equipe = cadastro!.Equipe!.ToUpper(),
                 IdEquipeSituacao = (Int32)request.IdEquipe,
                 ImeiSituacao = request.ImeiColetor,
                 IdProgramacaoRetornoGuid = idProgramacaoRetornoGuid,
-                Longitude = Decimal.TryParse(request.Longitude.PadRight(12, '0').Substring(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lng) ? lng : 0,
-                Latitude = Decimal.TryParse(request.Latitude.PadRight(12, '0').Substring(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lat) ? lat : 0,
+                Longitude = Decimal.TryParse(request.Longitude.PadRight(12, '0').AsSpan(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lng) ? lng : 0,
+                Latitude = Decimal.TryParse(request.Latitude.PadRight(12, '0').AsSpan(0, 12), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out Decimal lat) ? lat : 0,
             };
 
             context.Programacoes.Add(programacao);
