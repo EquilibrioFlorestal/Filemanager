@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Peixe.SOF.Worker", "Peixe.S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SMPD", "SMPD", "{B6FF8962-7486-4101-8870-8884C976CAD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.SMDP.Worker", "Peixe.SMDP.Worker\Peixe.SMDP.Worker.csproj", "{68178980-433A-41A4-8B72-39842843FEAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Peixe.SMDP.Worker", "Peixe.SMDP.Worker\Peixe.SMDP.Worker.csproj", "{68178980-433A-41A4-8B72-39842843FEAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peixe.UnitTest", "Peixe.UnitTest\Peixe.UnitTest.csproj", "{9D3023DA-B8AB-4700-825E-61E7EB4FE889}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{68178980-433A-41A4-8B72-39842843FEAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68178980-433A-41A4-8B72-39842843FEAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68178980-433A-41A4-8B72-39842843FEAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D3023DA-B8AB-4700-825E-61E7EB4FE889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D3023DA-B8AB-4700-825E-61E7EB4FE889}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D3023DA-B8AB-4700-825E-61E7EB4FE889}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D3023DA-B8AB-4700-825E-61E7EB4FE889}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

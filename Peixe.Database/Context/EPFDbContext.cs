@@ -7,9 +7,11 @@ public class EPFDbContext : DbContext
 {
     public EPFDbContext(DbContextOptions<EPFDbContext> options) : base(options) { }
 
-    public DbSet<Bloco> Blocos { get; set; }
-    public DbSet<Programacao> Programacoes { get; set; }
-    public DbSet<Cadastro> Cadastros { get; set; }
+    public EPFDbContext() : base() { }
+
+    public virtual DbSet<Bloco> Blocos { get; set; }
+    public virtual DbSet<Programacao> Programacoes { get; set; }
+    public virtual DbSet<Cadastro> Cadastros { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -44,6 +44,7 @@ public class OrderFileProcessing
     public List<OrderImageProcessing> OrderImagens { get; set; }
     public List<OrderTalhaoProcessing> OrderTalhoes { get; set; }
 
+    public OrderFileProcessing() { }
 
     public OrderFileProcessing(String caminhoOrigem, String diretorioDestino, String diretorioBackup, String modulo, UInt32 idEmpresa)
     {

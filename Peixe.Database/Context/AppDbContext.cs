@@ -3,11 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Peixe.Database.Context;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext : DbContext
 {
-    public DbSet<Arquivo> Arquivos { get; set; }
-    public DbSet<Imagem> Imagens { get; set; }
-    public DbSet<Talhao> Talhoes { get; set; }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    public AppDbContext() : base() { }
+
+    public virtual DbSet<Arquivo> Arquivos { get; set; }
+    public virtual DbSet<Imagem> Imagens { get; set; }
+    public virtual DbSet<Talhao> Talhoes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

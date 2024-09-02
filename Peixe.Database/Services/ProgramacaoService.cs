@@ -84,7 +84,7 @@ public class ProgramacaoService : IProgramacaoService
                 IdProgramacaoGuid = idProgramacaoGuid,
                 IdSituacao = (Int32)request.IdSituacao,
                 DataSituacao = request.DataSituacao,
-                DataProgramacao = new DateTime(request.DataSituacao.Year, request.DataSituacao.Month, request.DataSituacao.Day, request.DataSituacao.Hour - 1, 0, 0),
+                DataProgramacao = new DateTime(request.DataSituacao.Year, request.DataSituacao.Month, request.DataSituacao.Day, request.DataSituacao.AddHours(-1).Hour, 0, 0),
                 IdMotivoSituacao = (Int32)request.IdMotivo,
                 ObservacaoUsuario = request.Observacao,
                 IdUsuarioSituacao = (Int32)request.IdUsuario,
