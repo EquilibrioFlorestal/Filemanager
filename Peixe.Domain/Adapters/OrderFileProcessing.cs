@@ -178,6 +178,9 @@ public class OrderFileProcessing
 
             Latitude = talhao.SelectSingleNode("vl_latitude")?.InnerText ?? String.Empty,
             Longitude = talhao.SelectSingleNode("vl_longitude")?.InnerText ?? String.Empty,
+            Altitude = talhao.SelectSingleNode("vl_altitude")?.InnerText ?? String.Empty,
+            Direcao = talhao.SelectSingleNode("vl_direcao")?.InnerText ?? String.Empty,
+            Precisao = talhao.SelectSingleNode("vl_precisao")?.InnerText ?? String.Empty,
 
             IdTipoLevantamento = ( _idTipoLevantamento == 102 ) ? 101u : _idTipoLevantamento,
             Modulo = Modulo.ToString(),
@@ -192,7 +195,7 @@ public class OrderFileProcessing
             IdEmpresa = IdEmpresa,
             Observacao = talhao.SelectSingleNode("ds_obs")?.InnerText ?? String.Empty,
             IdEquipe = Convert.ToUInt16(talhao.SelectSingleNode("id_equipe_situacao")?.InnerText),
-            IdExportacao = IdExportacao,
+            IdExportacao = IdExportacao,            
             IdMotivo = Convert.ToUInt16(talhao.SelectSingleNode("id_motivo")?.InnerText),
             IdSituacao = Convert.ToUInt16(talhao.SelectSingleNode("id_situacao")?.InnerText),
             IdUsuario = Convert.ToUInt16(talhao.SelectSingleNode("id_usuario_situacao")?.InnerText),

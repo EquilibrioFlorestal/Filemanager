@@ -34,8 +34,7 @@ public class ProgramacaoService : IProgramacaoService
                 return new(programacao, "Sucesso.");
             }
             
-            if (programacao == null)
-                return new(null, "");            
+            if (programacao == null) return new(null, "");
 
             if (programacao.IdSituacao == 1)
             {

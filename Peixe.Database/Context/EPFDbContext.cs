@@ -17,7 +17,7 @@ public class EPFDbContext : DbContext
     {
         optionsBuilder.UseSqlServer(
             connectionString: "",
-            options => options.CommandTimeout(300).EnableRetryOnFailure(5));
+            options => options.CommandTimeout(600).EnableRetryOnFailure(5));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -60,6 +60,11 @@ public class EPFDbContext : DbContext
         modelBuilder.Entity<Programacao>().Property(x => x.IdProgramacaoRetornoGuid).HasColumnName("id_programacao_retorno_guid");
         modelBuilder.Entity<Programacao>().Property(x => x.Latitude).HasColumnName("vl_latitude").HasColumnType("numeric").HasPrecision(12);
         modelBuilder.Entity<Programacao>().Property(x => x.Longitude).HasColumnName("vl_longitude").HasColumnType("numeric").HasPrecision(12);
+
+        modelBuilder.Entity<Programacao>().Property(x => x.Altitude).HasColumnName("vl_altitude").HasColumnType("numeric").HasPrecision(9);
+        modelBuilder.Entity<Programacao>().Property(x => x.Direcao).HasColumnName("vl_direcao").HasColumnType("numeric").HasPrecision(9);
+        modelBuilder.Entity<Programacao>().Property(x => x.Precisao).HasColumnName("vl_precisao").HasColumnType("numeric").HasPrecision(9);
+
 
     }
 

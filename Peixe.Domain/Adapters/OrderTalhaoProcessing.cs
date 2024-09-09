@@ -21,6 +21,9 @@ public class OrderTalhaoProcessing
     public Char? SnNovo { get; set; } // sn_novo
     public required String Latitude { get; set; } // vl_latitude
     public required String Longitude { get; set; } // vl_longitude
+    public required String Altitude { get; set; } // vl_altitude
+    public required String Precisao { get; set; } // vl_precisao
+    public required String Direcao { get; set; } // vl_direcao
     public required String NomeArquivo { get; set; } // file
     public required String IdCiclo { get; set; } // ciclo
     public UInt32 IdEmpresa { get; set; } // id_empresa

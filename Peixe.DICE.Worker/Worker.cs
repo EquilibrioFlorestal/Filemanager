@@ -229,6 +229,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
         await _mediator.Publish(new ArquivoProcessandoNotification(requisicaoArquivo, validadeProcessamento));
 
+        // Check if file was registered
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
             IArquivoService service = scope.ServiceProvider.GetRequiredService<IArquivoService>();
@@ -242,6 +243,8 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             }
         }
 
+
+        // Check if every field was registered
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
             ITalhaoService service = scope.ServiceProvider.GetRequiredService<ITalhaoService>();
@@ -279,6 +282,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             await Task.WhenAll(tasks);
         }
 
+        // Check if every image was registered
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
             IImagemService service = scope.ServiceProvider.GetRequiredService<IImagemService>();
@@ -304,6 +308,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
             await Task.WhenAll(tasks);
         }
+        
         //await Task.Run(() => Console.WriteLine($"Arquivo processado: {requisicaoArquivo.NomeSemExtensao}"));
     }
 

@@ -31,18 +31,28 @@ public class Programacao
     public Decimal? Latitude { get; set; }
     public Decimal? Longitude { get; set; }
 
+    public Decimal? Altitude { get; set; }
+    public Decimal? Precisao { get; set; }
+    public Decimal? Direcao { get; set; }
+
+
 
     public Programacao Atualizar(OrderTalhaoProcessing request)
     {
         this.IdSituacao = (Int32)request.IdSituacao;
         this.DataSituacao = request.DataSituacao;
         this.IdMotivoSituacao = (Int32)request.IdMotivo;
-        this.ObservacaoUsuario = request.Observacao;
+        this.ObservacaoUsuario = request.Motivo;
         this.IdUsuarioSituacao = (Int32)request.IdUsuario;
         this.SnNovo = request.SnNovo ?? 'N';
         this.ImeiSituacao = request.ImeiColetor;
         this.Latitude = Math.Round(Decimal.TryParse(request.Latitude, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal lat) ? lat : Decimal.Zero, 6);
         this.Longitude = Math.Round(Decimal.TryParse(request.Longitude, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal lng) ? lng : Decimal.Zero, 6);
+        
+        this.Altitude = Math.Round(Decimal.TryParse(request.Altitude, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal alt) ? alt : Decimal.Zero, 2);
+        this.Direcao = Math.Round(Decimal.TryParse(request.Direcao, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal dir) ? dir : Decimal.Zero, 2);
+        this.Precisao = Math.Round(Decimal.TryParse(request.Precisao, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal pre) ? pre: Decimal.Zero, 2);
+
         this.IdExportacao = (Int32)request.IdExportacao;
         this.IdEquipeSituacao = (Int32)request.IdEquipe;
         this.IdProgramacaoRetornoGuid = Guid.TryParse(request.ProgramacaoRetornoGuid, out Guid guid) ? guid : null;
