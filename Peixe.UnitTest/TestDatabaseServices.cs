@@ -313,6 +313,9 @@ public class TestProgramacaoDatabaseServices
 
         OrderTalhaoProcessing order = new()
         {
+            Altitude = "",
+            Direcao = "",
+            Precisao = "",
             IdCiclo = "1",
             ImeiColetor = "YYYYY",
             Latitude = "-10.0000",
@@ -339,6 +342,9 @@ public class TestProgramacaoDatabaseServices
     {
         OrderTalhaoProcessing order = new()
         {
+            Altitude = "",
+            Direcao = "",
+            Precisao = "",
             IdCiclo = "1",
             ImeiColetor = "YYYYY",
             Latitude = "-10.0000",
@@ -361,6 +367,9 @@ public class TestProgramacaoDatabaseServices
     {
         OrderTalhaoProcessing order = new()
         {
+            Altitude = "",
+            Direcao = "",
+            Precisao = "",
             IdCiclo = "1",
             ImeiColetor = "YYYYY",
             Latitude = "-10.0000",
