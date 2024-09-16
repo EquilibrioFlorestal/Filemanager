@@ -69,6 +69,12 @@ public class TarefaConcluidaVaziaNotification(OrderProcessing order) : INotifica
     public OrderProcessing order { get; set; } = order;
 }
 
+public class TarefaNaoConcluidaNotification(OrderProcessing order, Exception ex) : INotification
+{
+    public OrderProcessing Order { get; set; } = order;
+    public Exception exception { get; set; } = ex;
+}
+
 public class TransferenciaInvalidaNotification(OrderFileProcessing order) : INotification
 {
     public OrderFileProcessing order { get; set; } = order;

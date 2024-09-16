@@ -125,7 +125,7 @@ public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandl
     }
 }
 
-public class TarefaHandler(ILogger<TarefaHandler> logger) : INotificationHandler<TarefaInvalidaNotification>, INotificationHandler<TarefaConcluidaNotification>, INotificationHandler<TarefaIniciadaNotification>, INotificationHandler<TarefaConcluidaVaziaNotification>
+public class TarefaHandler(ILogger<TarefaHandler> logger) : INotificationHandler<TarefaInvalidaNotification>, INotificationHandler<TarefaConcluidaNotification>, INotificationHandler<TarefaIniciadaNotification>, INotificationHandler<TarefaConcluidaVaziaNotification>, INotificationHandler<TarefaNaoConcluidaNotification>
 {
     private readonly ILogger<TarefaHandler> _logger = logger;
 
@@ -150,6 +150,12 @@ public class TarefaHandler(ILogger<TarefaHandler> logger) : INotificationHandler
     public Task Handle(TarefaConcluidaVaziaNotification notification, CancellationToken cancellationToken)
     {
         // _logger.LogInformation($"Tarefa: Concluida {notification.order.Guid} [{notification.order.ElapsedTime}]");
+        return Task.CompletedTask;
+    }
+
+    public Task Handle(TarefaNaoConcluidaNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogWarning($"Tarefa: {notification.Order.Guid} nao finalizada.");
         return Task.CompletedTask;
     }
 }
