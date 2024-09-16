@@ -160,18 +160,25 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
                 if (requisicao == null) continue;
 
-                // AnsiConsole.MarkupLine($"Tarefa: Iniciando {requisicao.Guid}");
-                // _mediator.Publish(new TarefaIniciadaNotification(requisicao), cancellationToken);
-
-                ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
-
-                if (requisicao.FilesDownloaded > 0)
+                try
                 {
-                    AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}, Objects: {requisicao.ObjectsDownload}]");
-                    _mediator.Publish(new TarefaConcluidaNotification(requisicao), cancellationToken);
-                }
+                    // AnsiConsole.MarkupLine($"Tarefa: Iniciando {requisicao.Guid}");
+                    // _mediator.Publish(new TarefaIniciadaNotification(requisicao), cancellationToken);
 
-                //_mediator.Publish(new TarefaConcluidaVaziaNotification(requisicao), cancellationToken);
+                    ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
+
+                    if (requisicao.FilesDownloaded > 0)
+                    {
+                        AnsiConsole.WriteLine($"Tarefa: Concluida {requisicao.Guid} [Arquivos: {requisicao.FilesDownloaded}, Objects: {requisicao.ObjectsDownload}]");
+                        _mediator.Publish(new TarefaConcluidaNotification(requisicao), cancellationToken);
+                    }
+
+                    //_mediator.Publish(new TarefaConcluidaVaziaNotification(requisicao), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _mediator.Publish(new TarefaNaoConcluidaNotification(requisicao, ex));
+                }
             }
         }
     }
@@ -189,7 +196,14 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             {
                 using (requisicaoArquivo)
                 {
-                    ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
+                    try
+                    {
+                        ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
+                    }
+                    catch (Exception)
+                    {
+
+                    }
                 }
             });
         }
@@ -206,7 +220,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
         {
             arquivoZipValido = requisicaoArquivo.ValidarArquivoZip();
         }
-        catch (IOException ex)
+        catch (IOException)
         {
             return;
         }
@@ -315,12 +329,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             await Task.WhenAll(tasks);
         }
 
-        Task.Run(() =>
-        {
-            _mediator.Publish(new ArquivoProcessadoNotification(requisicaoArquivo));
-        });
-        //await Task.Run(() => Console.WriteLine($"Arquivo processado: {requisicaoArquivo.NomeSemExtensao}"));
+        _mediator.Publish(new ArquivoProcessadoNotification(requisicaoArquivo));
     }
-
 }
 
