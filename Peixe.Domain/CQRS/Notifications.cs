@@ -76,8 +76,13 @@ public class TransferenciaInvalidaNotification(OrderFileProcessing order) : INot
 
 public class ErroAdicionarTalhaoNotification(OrderTalhaoProcessing order, String mensagem) : INotification
 {
-    public OrderTalhaoProcessing order { get; set; }
+    public OrderTalhaoProcessing order { get; set; } = order;
     public String mensagem { get; set; } = mensagem;
+}
+
+public class ArquivoProcessadoNotification(OrderFileProcessing order): INotification
+{
+    public OrderFileProcessing order { get; set; } = order;
 }
 
 public class ErroAdicionarImagemNotification(OrderImageProcessing order, String mensagem) : INotification

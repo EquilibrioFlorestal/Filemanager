@@ -163,7 +163,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                 // AnsiConsole.MarkupLine($"Tarefa: Iniciando {requisicao.Guid}");
                 // _mediator.Publish(new TarefaIniciadaNotification(requisicao), cancellationToken);
 
-                 ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
+                ProcessarTarefa(requisicao, cancellationToken).Wait(cancellationToken);
 
                 if (requisicao.FilesDownloaded > 0)
                 {
@@ -187,13 +187,11 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
             ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = _maxBatchTask };
             Parallel.ForEach(requisicao.OrderFiles, parallelOptions, (requisicaoArquivo) =>
             {
-                ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
+                using (requisicaoArquivo)
+                {
+                    ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
+                }
             });
-
-            //foreach (OrderFileProcessing requisicaoArquivo in requisicao.OrderFiles)
-            //{
-            //    await ProcessarArquivo(requisicao, requisicaoArquivo);
-            //}
         }
 
         requisicao.FinishOrder();
@@ -202,7 +200,16 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
     async Task ProcessarArquivo(OrderProcessing requisicao, OrderFileProcessing requisicaoArquivo)
     {
-        Boolean arquivoZipValido = requisicaoArquivo.ValidarArquivoZip();
+        Boolean arquivoZipValido = false;
+
+        try
+        {
+            arquivoZipValido = requisicaoArquivo.ValidarArquivoZip();
+        }
+        catch (IOException ex)
+        {
+            return;
+        }
 
         if (!arquivoZipValido)
         {
@@ -242,7 +249,6 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                 if (!resposta) await _mediator.Publish(new ErroAdicionarArquivoNotification(requisicaoArquivo, mensagem));
             }
         }
-
 
         // Check if every field was registered
         using (IServiceScope scope = serviceProvider.CreateScope())
@@ -308,16 +314,13 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
             await Task.WhenAll(tasks);
         }
-        
+
+        Task.Run(() =>
+        {
+            _mediator.Publish(new ArquivoProcessadoNotification(requisicaoArquivo));
+        });
         //await Task.Run(() => Console.WriteLine($"Arquivo processado: {requisicaoArquivo.NomeSemExtensao}"));
     }
 
-    private static IEnumerable<List<T>> Partition<T>(List<T> source, Int32 size)
-    {
-        for (Int32 i = 0; i < source.Count; i += size)
-        {
-            yield return source.GetRange(i, Math.Min(size, source.Count - i));
-        }
-    }
 }
 

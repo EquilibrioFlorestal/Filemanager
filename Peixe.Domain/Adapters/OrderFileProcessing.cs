@@ -9,7 +9,7 @@ using ZipFile = ICSharpCode.SharpZipLib.Zip.ZipFile;
 
 namespace Domain.Adapters;
 
-public class OrderFileProcessing
+public class OrderFileProcessing : IDisposable
 {
     public Guid Guid { get; init; }
     public String Nome { get; set; }
@@ -43,6 +43,8 @@ public class OrderFileProcessing
 
     public List<OrderImageProcessing> OrderImagens { get; set; }
     public List<OrderTalhaoProcessing> OrderTalhoes { get; set; }
+
+    private Boolean disposed = false;
 
     public OrderFileProcessing() { }
 
@@ -98,11 +100,11 @@ public class OrderFileProcessing
 
     public virtual Boolean ValidarArquivoZip()
     {
-        Byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
-        Byte[] xmlBytes;
-
         try
         {
+            Byte[] zipBytes = File.ReadAllBytes(CaminhoOrigem);
+            Byte[] xmlBytes;
+
             using (MemoryStream zipStream = new MemoryStream(zipBytes))
             {
                 using (ZipFile zipFile = new ZipFile(zipStream))
@@ -158,11 +160,14 @@ public class OrderFileProcessing
         {
             return ArquivoZipValido = false;
         }
-        catch (Exception ex)
+        catch (System.IO.IOException)
+        {
+            throw new IOException("because it is being used by another process");
+        }
+        catch (Exception)
         {
             return ArquivoZipValido = false;
         }
-
     }
 
     protected OrderTalhaoProcessing ProcessarTalhao(XmlNode talhao)
@@ -195,12 +200,11 @@ public class OrderFileProcessing
             IdEmpresa = IdEmpresa,
             Observacao = talhao.SelectSingleNode("ds_obs")?.InnerText ?? String.Empty,
             IdEquipe = Convert.ToUInt16(talhao.SelectSingleNode("id_equipe_situacao")?.InnerText),
-            IdExportacao = IdExportacao,            
+            IdExportacao = IdExportacao,
             IdMotivo = Convert.ToUInt16(talhao.SelectSingleNode("id_motivo")?.InnerText),
             IdSituacao = Convert.ToUInt16(talhao.SelectSingleNode("id_situacao")?.InnerText),
             IdUsuario = Convert.ToUInt16(talhao.SelectSingleNode("id_usuario_situacao")?.InnerText),
             SnNovo = talhao.SelectSingleNode("sn_novo")?.InnerText.ToCharArray().FirstOrDefault(),
-
         };
         return order;
     }
@@ -314,7 +318,7 @@ public class OrderFileProcessing
 
                 return stringBuilder.ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }
@@ -330,6 +334,40 @@ public class OrderFileProcessing
     {
         return ProcessamentoValido;
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(Boolean disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                OrderImagens.Clear();
+                OrderTalhoes.Clear();
+
+                HashOrigem = null;
+                HashDestino = null;
+                HashBackup = null;
+
+                CaminhoBackup = String.Empty;
+                CaminhoDestino = String.Empty;
+                CaminhoOrigem = String.Empty;
+            }
+
+            disposed = true;
+        }
+    }
+
+    ~OrderFileProcessing()
+    {
+        Dispose(false);
+    }
+
 }
 
 public class OrderFileProcessingSmq : OrderFileProcessing

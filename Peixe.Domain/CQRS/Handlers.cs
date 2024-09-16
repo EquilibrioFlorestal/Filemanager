@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Domain.CQRS;
 
@@ -89,7 +90,7 @@ public class ImagemHandler(ILogger<ImagemHandler> logger) : INotificationHandler
     }
 }
 
-public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandler<ArquivoCorrompidoNotification>, INotificationHandler<ErroAdicionarArquivoNotification>, INotificationHandler<ArquivoProcessandoNotification>, INotificationHandler<TransferenciaInvalidaNotification>
+public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandler<ArquivoCorrompidoNotification>, INotificationHandler<ErroAdicionarArquivoNotification>, INotificationHandler<ArquivoProcessandoNotification>, INotificationHandler<TransferenciaInvalidaNotification>, INotificationHandler<ArquivoProcessadoNotification>
 {
     private readonly ILogger<ArquivoHandler> _logger = logger;
 
@@ -114,6 +115,12 @@ public class ArquivoHandler(ILogger<ArquivoHandler> logger) : INotificationHandl
     public Task Handle(TransferenciaInvalidaNotification notification, CancellationToken cancellationToken)
     {
         _logger.LogWarning($"Arquivo: Nao foi possivel validar a transferencia do arquivo {notification.order.NomeSemExtensao}.");
+        return Task.CompletedTask;
+    }
+
+    public Task Handle(ArquivoProcessadoNotification notification, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation($"Arquivo: {notification.order.NomeSemExtensao}, processado.");
         return Task.CompletedTask;
     }
 }
