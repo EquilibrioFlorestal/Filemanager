@@ -262,7 +262,7 @@ public class OrderFileProcessing : IDisposable
         {
             File.Copy(caminhoOrigem, caminhoDestino, true);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }
@@ -290,7 +290,7 @@ public class OrderFileProcessing : IDisposable
             else
                 File.Copy(caminhoOrigem, caminhoBackup, true);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }

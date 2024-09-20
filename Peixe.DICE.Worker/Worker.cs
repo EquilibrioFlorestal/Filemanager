@@ -30,7 +30,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (!OnedriveUtils.CheckProcessOnedrive())
+            if (!OnedriveUtils.CheckProcessOnedrive() && DebugMode == false)
             {
                 Exception ex = new Exception("No OneDrive process was found.");
                 await _mediator.Publish(new RequiredProcessNotFoundNotification("OneDrive"), cancellationToken);
@@ -75,7 +75,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
         {
             IConfigurationSection config = _configuration.GetSection("Peixe");
             UInt16 loadDelay = config.GetValue<UInt16>("delaySecondsTask");
-            UInt16 loadBatch = config.GetValue<UInt16>("maxBatchTask");
+            UInt16 loadBatch = DebugMode ? (UInt16)1 : config.GetValue<UInt16>("maxBatchTask");
             UInt16 loadDelayBackgroundTagOffline = config.GetValue<UInt16>("delayHoursBackgroundTagOffline");
 
             if (loadDelayBackgroundTagOffline != _delayHoursEachBackgroundTagOffline)
@@ -200,10 +200,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
                     {
                         ProcessarArquivo(requisicao, requisicaoArquivo).Wait();
                     }
-                    catch (Exception)
-                    {
-
-                    }
+                    catch (Exception) { }
                 }
             });
         }
@@ -220,10 +217,7 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
         {
             arquivoZipValido = requisicaoArquivo.ValidarArquivoZip();
         }
-        catch (IOException)
-        {
-            return;
-        }
+        catch (IOException) { return; }
 
         if (!arquivoZipValido)
         {
@@ -236,15 +230,12 @@ public class Worker(IConfiguration configuration, IMediator mediator, IServicePr
 
         Boolean validadeProcessamento = await requisicaoArquivo.ValidarProcessamento();
 
-        requisicao.FilesDownloaded += 1;
+        requisicao.FilesDownloaded += validadeProcessamento ? (UInt16)1 : (UInt16)0;
 
         if (!validadeProcessamento)
         {
-            lock (LockObj)
-            {
-                AnsiConsole.MarkupLine($"[red]transferencia[/]: {requisicaoArquivo.NomeSemExtensao}");
-                _mediator.Publish(new TransferenciaInvalidaNotification(requisicaoArquivo));
-            }
+            AnsiConsole.MarkupLine($"[red]transferencia[/]: {requisicaoArquivo.NomeSemExtensao}");
+            await _mediator.Publish(new TransferenciaInvalidaNotification(requisicaoArquivo));
             return;
         }
 
