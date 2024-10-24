@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.Utils;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Serilog;
 using Spectre.Console;
 
 namespace Peixe.SMQ.Worker;
@@ -34,11 +35,17 @@ public class Worker(IConfiguration configuration, IServiceProvider serviceProvid
 
         Task verificarFilaTask = Task.Run(() => VerificarFilaTarefasAsync(cancellationToken), cancellationToken);
 
-        lock (LockObj)
+        try
         {
-            CarregarConfiguracoesJson();
-
-            AdicionarTarefa(cancellationToken);
+            lock (LockObj)
+            {
+                CarregarConfiguracoesJson();
+                AdicionarTarefa(cancellationToken);
+            }
+        }
+        catch (Exception)
+        {
+            Log.Warning("Não foi possível obter preferência");
         }
 
         await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
@@ -71,6 +78,9 @@ public class Worker(IConfiguration configuration, IServiceProvider serviceProvid
                 //AnsiConsole.MarkupLine($"[cyan]Batch[/]: ajustado para {loadBatch} arquivos.");
                 _maxBatchTask = loadBatch;
             }
+
+            Log.Debug("Configurações carregadas com sucesso");
+
         }
         catch (Exception)
         {
@@ -80,22 +90,29 @@ public class Worker(IConfiguration configuration, IServiceProvider serviceProvid
 
     void AdicionarTarefa(CancellationToken cancellationToken)
     {
-        lock (LockObj)
+        try
         {
-            List<OrderProcessing>? orders = LerRequisicoesJson();
-
-            orders?.ForEach(tarefa =>
+            lock (LockObj)
             {
-                if (!tarefa.Validate())
+                List<OrderProcessing>? orders = LerRequisicoesJson();
+
+                orders?.ForEach(tarefa =>
                 {
-                    AnsiConsole.MarkupLine($"[white on red]Tarefa: {tarefa.Guid} nao e valida.[/]");
-                    return;
-                }
+                    if (!tarefa.Validate())
+                    {
+                        AnsiConsole.MarkupLine($"[white on red]Tarefa: {tarefa.Guid} nao e valida.[/]");
+                        return;
+                    }
 
-                if (cancellationToken.IsCancellationRequested) return;
+                    if (cancellationToken.IsCancellationRequested) return;
 
-                FilaRequisicoes.Enqueue(tarefa);
-            });
+                    FilaRequisicoes.Enqueue(tarefa);
+                });
+            }
+        }
+        catch (Exception)
+        {
+            Log.Warning("Não foi possível obter preferência");
         }
     }
 
@@ -110,6 +127,8 @@ public class Worker(IConfiguration configuration, IServiceProvider serviceProvid
 
         String contentYaml = File.ReadAllText(caminhoArquivoOrders);
         List<OrderProcessing>? orders = JsonConvert.DeserializeObject<List<OrderProcessing>>(contentYaml);
+
+        Log.Debug($"{orders.Count} Requisições carregadas");
         return orders;
     }
 
@@ -117,33 +136,45 @@ public class Worker(IConfiguration configuration, IServiceProvider serviceProvid
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            lock (LockObj)
+            try
             {
-                if (FilaRequisicoes.Count <= 0) return;
 
-                OrderProcessing? requisicao = FilaRequisicoes.Dequeue();
+                lock (LockObj)
+                {
+                    Log.Debug($"Requisições {FilaRequisicoes.Count}");
 
-                if (requisicao == null) continue;
+                    if (FilaRequisicoes.Count <= 0) return;
 
-                ProcessarTarefa(requisicao, cancellationToken).Wait();
+                    OrderProcessing? requisicao = FilaRequisicoes.Dequeue();
 
-                AnsiConsole.MarkupLine($"[green]Tarefa[/]: Concluida {requisicao.Guid} [[Arquivos: {requisicao.FilesDownloaded}]]");
+                    if (requisicao == null) continue;
 
-                AnsiConsole.WriteLine();
+                    Log.Debug($"Iniciando processamento da tarefa {requisicao.Guid}");
 
-                Int32 quantidadeSucesso = requisicao.OrderFiles.Where(x => x.IsSucessoProcessamento() == true).Count();
+                    ProcessarTarefa(requisicao, cancellationToken).Wait();
 
-                AnsiConsole.Write(
-                    new BarChart()
-                    .Width(60)
-                    .Label("Resumo transações")
-                    .CenterLabel()
-                    .AddItem("Sucesso", quantidadeSucesso, Color.Green)
-                    .AddItem("Falha", requisicao.OrderFiles.Count - quantidadeSucesso, Color.Red)
-                    );
+                    AnsiConsole.MarkupLine($"[green]Tarefa[/]: Concluida {requisicao.Guid} [[Arquivos: {requisicao.FilesDownloaded}]]");
+
+                    AnsiConsole.WriteLine();
+
+                    Int32 quantidadeSucesso = requisicao.OrderFiles.Where(x => x.IsSucessoProcessamento() == true).Count();
+
+                    AnsiConsole.Write(
+                        new BarChart()
+                        .Width(60)
+                        .Label("Resumo transações")
+                        .CenterLabel()
+                        .AddItem("Sucesso", quantidadeSucesso, Color.Green)
+                        .AddItem("Falha", requisicao.OrderFiles.Count - quantidadeSucesso, Color.Red)
+                        );
 
 
-                host.StopApplication();
+                    host.StopApplication();
+                }
+            }
+            catch (Exception)
+            {
+                Log.Warning("Não foi possível obter preferência");
             }
         }
     }

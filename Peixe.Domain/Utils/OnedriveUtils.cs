@@ -11,7 +11,10 @@ internal static class FileAttributesOnedrive
 
 public static class OnedriveUtils
 {
-    public static readonly String CaminhoOnedrive = Environment.GetEnvironmentVariable("ManualOneDrive", EnvironmentVariableTarget.User) ?? String.Empty;
+    public static readonly String CaminhoOnedrive = 
+        Environment.GetEnvironmentVariable("ManualOneDrive", EnvironmentVariableTarget.Machine) ??
+        Environment.GetEnvironmentVariable("ManualOneDrive", EnvironmentVariableTarget.User) ??
+        String.Empty; 
 
     public static Boolean CheckProcessOnedrive()
     {

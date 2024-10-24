@@ -1,5 +1,6 @@
 ﻿using Domain.Utils;
 using ICSharpCode.SharpZipLib.Zip;
+using Serilog;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -158,14 +159,17 @@ public class OrderFileProcessing : IDisposable
         }
         catch (ZipException)
         {
+            Log.Warning("Arquivo zip não é válido");
             return ArquivoZipValido = false;
         }
-        catch (System.IO.IOException)
+        catch (IOException)
         {
+            Log.Warning("Arquivo zip está em uso por outro processo");
             throw new IOException("because it is being used by another process");
         }
         catch (Exception)
         {
+            Log.Warning("Arquivo zip possui erro desconhecido");
             return ArquivoZipValido = false;
         }
     }
@@ -221,23 +225,42 @@ public class OrderFileProcessing : IDisposable
     public Task<Boolean> ValidarProcessamento()
     {
         if (HashOrigem != HashDestino)
+        {
+            Log.Warning("HashOrigem != HashDestino");
             return Task.FromResult(false);
+        }
 
         if (HashOrigem != HashBackup)
+        {
+            Log.Warning("HashOrigem != HashBackup");
             return Task.FromResult(false);
+        }
 
         if (HashDestino != HashBackup)
+        {
+            Log.Warning("HashDestino != HashBackup");
             return Task.FromResult(false);
+        }
 
         if (!ArquivoZipValido)
+        {
+            Log.Warning("Arquivo zip inválido");
             return Task.FromResult(false);
+        }
 
         if (!Path.Exists(CaminhoDestino))
+        {
+            Log.Warning("CaminhoDestino não existe.");
             return Task.FromResult(false);
+        }
 
         if (!Path.Exists(CaminhoBackup))
+        {
+            Log.Warning("CaminhoBackup não existe.");
             return Task.FromResult(false);
+        }
 
+        Log.Information("Processamento validado");
         ProcessamentoValido = true;
         return Task.FromResult(true);
     }
@@ -262,9 +285,9 @@ public class OrderFileProcessing : IDisposable
         {
             File.Copy(caminhoOrigem, caminhoDestino, true);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-
+            Log.Warning($"Falha ao copiar arquivo: {ex.Message}");
         }
 
         DefinirHashDestino();
@@ -290,9 +313,9 @@ public class OrderFileProcessing : IDisposable
             else
                 File.Copy(caminhoOrigem, caminhoBackup, true);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-
+            Log.Warning($"Falha ao mover arquivo: {ex.Message}");
         }
 
         DefinirHashBackup();
@@ -318,8 +341,9 @@ public class OrderFileProcessing : IDisposable
 
                 return stringBuilder.ToString();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Warning($"Não foi possível gerar a hash: {ex.Message}");
                 throw;
             }
         }
@@ -445,10 +469,17 @@ public class OrderFileProcessingSmq : OrderFileProcessing
         }
         catch (ZipException)
         {
+            Log.Warning("Arquivo zip não é válido");
             return ArquivoZipValido = false;
+        }
+        catch (IOException)
+        {
+            Log.Warning("Arquivo zip está em uso por outro processo");
+            throw new IOException("because it is being used by another process");
         }
         catch (Exception)
         {
+            Log.Warning("Arquivo zip possui erro desconhecido");
             return ArquivoZipValido = false;
         }
 

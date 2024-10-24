@@ -1,4 +1,5 @@
 ﻿using Domain.Utils;
+using Serilog;
 
 namespace Domain.Adapters;
 
@@ -48,20 +49,21 @@ public class OrderProcessing
     {
         if (!Directory.Exists(PastaDestino))
         {
-            Console.WriteLine($"Caminho: {PastaDestino} não encontrada.");
+            Log.Warning($"Caminho: {PastaDestino} não encontrada.");
             return false;
         }
         if (!Directory.Exists(PastaBackup))
         {
-            Console.WriteLine($"Caminho: {PastaBackup} não encontrada.");
+            Log.Warning($"Caminho: {PastaBackup} não encontrada.");
             return false;
         }
         if (!PastaOrigem.All(x => Directory.Exists(x)))
         {
-            Console.WriteLine($"Caminho: Caminho Origem não encontrada.");
+            Log.Warning($"Caminho: Caminho Origem não encontrada.");
             return false;
         };
 
+        Log.Information("Tarefa validada com sucesso");
         return true;
     }
 
@@ -71,6 +73,9 @@ public class OrderProcessing
 
         List<String> arquivos = OrderFiles.Select(x => x.CaminhoBackup).ToList();
         Parallel.ForEach(arquivos, OnedriveUtils.SetOffline);
+
+        Log.Debug($"{arquivos.Count} definidos como situação offline");
+
         return Task.CompletedTask;
     }
 
